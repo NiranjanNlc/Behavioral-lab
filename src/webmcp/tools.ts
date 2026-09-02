@@ -1,4 +1,4 @@
-import { scenario } from "@/simulation/data";
+import { scenario, interventions } from "@/simulation/data";
 
 /**
  * WebMCP tool: get_scenario
@@ -17,6 +17,30 @@ export const getScenarioTool = {
       {
         type: "text" as const,
         text: JSON.stringify(scenario),
+      },
+    ],
+  }),
+};
+
+/**
+ * WebMCP tool: list_interventions
+ * Returns the five behavioral interventions available for the current recycling scenario.
+ */
+export const listInterventionsTool = {
+  name: "list_interventions",
+  description:
+    "Returns the list of available behavioral interventions for the current recycling scenario, including each intervention's id, name, and effect in percentage points.",
+  inputSchema: {
+    type: "object",
+    properties: {},
+  } as const,
+  execute: async () => ({
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify(
+          interventions.map(({ id, name, effect }) => ({ id, name, effect }))
+        ),
       },
     ],
   }),
