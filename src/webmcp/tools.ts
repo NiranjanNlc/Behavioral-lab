@@ -136,6 +136,97 @@ export const compareInterventionsTool = {
   },
 };
 
+/**
+ * Behavioral explanations keyed by intervention ID.
+ */
+const behavioralExplanations: Record<string, { principle: string; explanation: string }> = {
+  default: {
+    principle: "Choice architecture / default effect",
+    explanation:
+      "Making recycling the default option reduces the effort required to participate and can increase participation because people often stick with the preselected choice.",
+  },
+  reminder: {
+    principle: "Salience / limited attention",
+    explanation:
+      "Reminders make recycling more noticeable at the moment a decision is made, helping people act on an intention they might otherwise overlook.",
+  },
+  "social-proof": {
+    principle: "Social norms / social proof",
+    explanation:
+      "Showing that other households participate can create a social norm that encourages people to follow the behavior they perceive as common or expected.",
+  },
+  "financial-incentive": {
+    principle: "Incentives",
+    explanation:
+      "A financial reward changes the immediate payoff associated with recycling, making participation more attractive in the decision itself.",
+  },
+  "loss-framing": {
+    principle: "Loss aversion / framing",
+    explanation:
+      "Framing the consequence as something people could lose can make the outcome feel more significant because potential losses often receive more psychological weight than equivalent gains.",
+  },
+};
+
+/**
+ * WebMCP tool: explain_result
+ * Explains the behavioral principle behind a selected intervention and connects it to the simulated result.
+ */
+export const explainResultTool = {
+  name: "explain_result",
+  description:
+    "Explains the behavioral principle behind a selected intervention and connects it to the simulated result, providing a concise human-readable behavioral-economics explanation.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      interventionId: {
+        type: "string",
+        description:
+          "The ID of the intervention to explain. Must be one of: default, reminder, social-proof, financial-incentive, loss-framing.",
+      },
+    },
+    required: ["interventionId"],
+  } as const,
+  execute: async (params: { interventionId: string }) => {
+    const intervention = interventions.find((i) => i.id === params.interventionId);
+    if (!intervention) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text" as const,
+            text: `Intervention "${params.interventionId}" is invalid. Valid IDs: ${interventions.map((i) => i.id).join(", ")}.`,
+          },
+        ],
+      };
+    }
+
+    const be = behavioralExplanations[intervention.id];
+    const result = runSimulation(scenario.baselineRate, intervention);
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            interventionId: intervention.id,
+            interventionName: intervention.name,
+            behavioralPrinciple: be.principle,
+            explanation: be.explanation,
+            simulatedResult: {
+              baselineRate: result.baselineRate,
+              effect: intervention.effect,
+              predictedRate: result.predictedRate,
+              absoluteChange: result.absoluteChange,
+              relativeChange: Math.round(result.relativeChange * 100 * 100) / 100,
+            },
+            disclaimer: "Illustrative simulation \u2014 not a real-world causal prediction.",
+          }),
+        },
+      ],
+    };
+  },
+};
+
 export const runSimulationTool = {
   name: "run_simulation",
   description:
