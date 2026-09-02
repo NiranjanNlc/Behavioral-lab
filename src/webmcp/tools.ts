@@ -1,18 +1,17 @@
 import { scenario } from "@/simulation/data";
-import type { WebMCPTool } from "./types";
 
 /**
  * WebMCP tool: get_scenario
  * Returns the currently configured behavioral scenario.
  */
-export const getScenarioTool: WebMCPTool = {
+export const getScenarioTool = {
   name: "get_scenario",
   description:
     "Returns the currently configured behavioral scenario, including the goal, target population, and baseline participation rate.",
   inputSchema: {
     type: "object",
     properties: {},
-  },
+  } as const,
   execute: async () => ({
     content: [
       {

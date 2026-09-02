@@ -1,33 +1,28 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { registerWebMCPTools } from "./register";
 
-type WebMCPStatus = "active" | "unavailable";
-
-let cachedStatus: WebMCPStatus | null = null;
-
-function getStatus(): WebMCPStatus {
-  if (cachedStatus === null) {
-    cachedStatus = registerWebMCPTools() ? "active" : "unavailable";
-  }
-  return cachedStatus;
-}
-
-const subscribe = () => () => {};
+type WebMCPStatus = "pending" | "active" | "unavailable";
 
 /**
  * Client component that registers WebMCP tools once on mount.
  * Renders a minimal dev indicator showing WebMCP status.
  */
 export function WebMCPProvider() {
-  const status = useSyncExternalStore(
-    subscribe,
-    getStatus,
-    () => "unavailable" as WebMCPStatus
-  );
+  const [status, setStatus] = useState<WebMCPStatus>("pending");
 
-  if (process.env.NODE_ENV !== "development") {
+  useEffect(() => {
+    let cancelled = false;
+    registerWebMCPTools().then((ok) => {
+      if (!cancelled) setStatus(ok ? "active" : "unavailable");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (process.env.NODE_ENV !== "development" || status === "pending") {
     return null;
   }
 
