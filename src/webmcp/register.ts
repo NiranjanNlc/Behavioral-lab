@@ -1,5 +1,7 @@
 import { getScenarioTool } from "./tools";
 
+let registered = false;
+
 /**
  * Attempts to register all WebMCP tools with document.modelContext.
  * Dynamically imports the polyfill so the API is available in any browser.
@@ -23,6 +25,9 @@ export async function registerWebMCPTools(): Promise<boolean> {
     return false;
   }
 
-  document.modelContext.registerTool(getScenarioTool);
+  if (!registered) {
+    document.modelContext.registerTool(getScenarioTool);
+    registered = true;
+  }
   return true;
 }
