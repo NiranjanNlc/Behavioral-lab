@@ -1,4 +1,4 @@
-import { getScenarioTool, listInterventionsTool } from "./tools";
+import { getScenarioTool, listInterventionsTool, runSimulationTool } from "./tools";
 
 let registered = false;
 
@@ -28,6 +28,7 @@ export async function registerWebMCPTools(): Promise<boolean> {
   if (!registered) {
     document.modelContext.registerTool(getScenarioTool);
     document.modelContext.registerTool(listInterventionsTool);
+    document.modelContext.registerTool(runSimulationTool);
     registered = true;
   }
   return true;
