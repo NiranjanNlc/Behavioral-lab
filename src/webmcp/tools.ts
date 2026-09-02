@@ -51,6 +51,91 @@ export const listInterventionsTool = {
  * WebMCP tool: run_simulation
  * Runs a deterministic behavioral intervention simulation for the current recycling scenario.
  */
+export const compareInterventionsTool = {
+  name: "compare_interventions",
+  description:
+    "Compares multiple behavioral interventions for the current recycling scenario by simulating each one and returning their predicted outcomes side by side, including the best-performing intervention.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      interventionIds: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "An array of intervention IDs to compare. Must contain at least 2. Valid IDs: default, reminder, social-proof, financial-incentive, loss-framing.",
+      },
+    },
+    required: ["interventionIds"],
+  } as const,
+  execute: async (params: { interventionIds: string[] }) => {
+    const { interventionIds } = params;
+
+    if (!Array.isArray(interventionIds) || interventionIds.length < 2) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text" as const,
+            text: "At least 2 intervention IDs are required for comparison.",
+          },
+        ],
+      };
+    }
+
+    for (const id of interventionIds) {
+      if (!interventions.find((i) => i.id === id)) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text: `Intervention "${id}" is unavailable. Valid IDs: ${interventions.map((i) => i.id).join(", ")}.`,
+            },
+          ],
+        };
+      }
+    }
+
+    const baselineRate = scenario.baselineRate;
+    let best: { interventionId: string; interventionName: string; predictedRate: number } | null = null;
+
+    const comparisons = interventionIds.map((id) => {
+      const intervention = interventions.find((i) => i.id === id)!;
+      const result = runSimulation(baselineRate, intervention);
+      const entry = {
+        interventionId: intervention.id,
+        interventionName: intervention.name,
+        effect: intervention.effect,
+        predictedRate: result.predictedRate,
+        absoluteChange: result.absoluteChange,
+        relativeChange: Math.round(result.relativeChange * 100 * 100) / 100,
+      };
+      if (!best || result.predictedRate > best.predictedRate) {
+        best = {
+          interventionId: intervention.id,
+          interventionName: intervention.name,
+          predictedRate: result.predictedRate,
+        };
+      }
+      return entry;
+    });
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            baselineRate,
+            comparisons,
+            bestIntervention: best,
+            disclaimer: "Illustrative simulation \u2014 not a real-world causal prediction.",
+          }),
+        },
+      ],
+    };
+  },
+};
+
 export const runSimulationTool = {
   name: "run_simulation",
   description:
