@@ -24,7 +24,7 @@ The judging criteria reported for this hackathon are four equal parts: Technolog
 ### Scene 1: The problem (0:00–0:15) · *Quality of the Idea, Impact*
 **Screen:** the empty page: title, goal box, example chips.
 **Narration:**
-> "Before a tax office, a ministry or an NGO rolls out a policy, someone has to decide: which nudge do we fund? Reminders, simpler forms, incentives? Today that's a guess, or a long report nobody has time to read. BehaviorLab turns that decision into something you can test in minutes: pick a goal, spend a budget, and see what actually holds up."
+> "Before a tax office, a ministry or an NGO rolls out a policy, someone has to decide: which option do we fund? Reminders, simpler forms, incentives? Today that's a guess, or a long report nobody has time to read. BehaviorLab turns that decision into something you can test in minutes: pick a goal, spend a budget, and see what actually holds up."
 
 ### Scene 2: Evidence, not guesses (0:15–0:40) · *Technological Implementation*
 **Screen:** type or click **Increase on-time VAT filing among Nepali SMEs**. Show the progress lines: searching the web, "Read [N] sources", drafting, setting a target.
@@ -62,7 +62,7 @@ The judging criteria reported for this hackathon are four equal parts: Technolog
 ### Scene 7: Any agent can use it (2:15–2:35) · *Technological Implementation, Potential Impact*
 **Screen:** a slide listing the six WebMCP tools: `generate_scenario`, `get_scenario`, `list_interventions`, `run_simulation`, `compare_interventions`, `explain_result`.
 **Narration:**
-> "Everything here is also exposed through WebMCP. Any compatible AI agent can set a policy goal, pull evidence, run the simulation, compare nudges and ask the reviewer for a critique. The page and the agent share the same scenario."
+> "Everything here is also exposed through WebMCP. Any compatible AI agent can set a policy goal, pull evidence, run the simulation, compare options and ask the reviewer for a critique. The page and the agent share the same scenario."
 
 *Only if you have tested it:* cut to a short clip of an agent calling `run_simulation` on the open page. *Otherwise* stay on the slide.
 
@@ -82,11 +82,11 @@ Drop Scene 7's slide to one sentence, merge Scenes 3 and 4 (show budget and bet 
 
 ## Devpost text
 
-**Tagline:** Beat the skeptic: spend a budget on behavioral nudges, bet on what they'll deliver, then watch a second model try to break your plan.
+**Tagline:** Beat the skeptic: spend a budget on behavioral interventions, bet on what they'll deliver, then watch a second model try to break your plan.
 
 **What it does.** You enter a policy goal. Tavily finds behavioral-science evidence, Nemotron Super drafts five interventions with effect ranges, citations and costs, and a Monte Carlo engine simulates the outcome. Nemotron 3 Ultra reviews the proposal as a skeptic. You play it as a game: choose interventions within a budget, bet on the gain, then watch the reviewer strike down optimistic estimates and see the real chance of hitting the target.
 
-**How we built it.** Next.js 16, TypeScript. Tavily search for evidence. Nemotron Super and Nemotron 3 Ultra through Nebius Token Factory's OpenAI-compatible API. A seeded Monte Carlo engine with triangular effect distributions, goal direction and diminishing returns for combined nudges. Six WebMCP tools so other agents can drive it. A server cache (memory plus disk, with in-flight de-duplication) so repeated goals make no API calls. 70 unit tests.
+**How we built it.** Next.js 16, TypeScript. Tavily search for evidence. Nemotron Super and Nemotron 3 Ultra through Nebius Token Factory's OpenAI-compatible API. A seeded Monte Carlo engine with triangular effect distributions, goal direction and diminishing returns for combined interventions. Six WebMCP tools so other agents can drive it. A server cache (memory plus disk, with in-flight de-duplication) so repeated goals make no API calls. 70 unit tests.
 
 **Challenges.** Models propose effect sizes far larger than the literature supports (a reminder at +20pp where meta-analyses say 3–8pp), so the second model's job became the product. Costs and targets are generated, so we validate them: the budget can never afford everything, and the target is set from the reviewer-adjusted evidence so the game is winnable.
 
