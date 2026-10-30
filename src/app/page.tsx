@@ -376,168 +376,175 @@ export default function Home() {
         )}
       </section>
 
-      <section aria-label="Mission" className="mb-10 border-y-2 border-ink py-5">
-        {!generated && (
-          <p className="mb-2 font-mono text-xs text-pen">Illustrative demo scenario. Build your own above to ground it in evidence.</p>
-        )}
-        <p className="font-mono text-xs uppercase tracking-wide text-muted">Mission</p>
-        <h2 className="font-display text-2xl leading-tight sm:text-3xl">{scenario.goal}</h2>
-        <p className="mt-1">
-          <span className="font-mono tabular-nums">
-            {formatPct(baseline)} → {formatPct(mission.targetRate)}
-          </span>{" "}
-          within {mission.horizonMonths} months · budget{" "}
-          <span className="font-mono tabular-nums">{formatMoney(mission.budget.amount, mission.budget)}</span>
+      {!generated && !building && (
+        <p className="border-y border-rule py-8 text-center text-muted">
+          Pick an example goal above, or type your own, to build a mission with a budget.
         </p>
+      )}
 
-        <div className="mt-5">
-          <MissionMeter
-            baseline={baseline}
-            target={mission.targetRate}
-            value={meterValue}
-            direction={direction}
-            betRate={chosen.length ? baseline + sign * bet : null}
-            extras={[baseline + sign * claim]}
-            tone={meterTone}
-            verdict={phase === "done" && outcome?.score ? (outcome.score.missionMet ? "met" : "missed") : null}
-          />
-          <p className="mt-2 text-sm italic text-muted" aria-live="polite">
-            {caption[phase]}
-            {(phase === "strike" || phase === "settle" || phase === "drop") && (
-              <button onClick={skip} className="ml-3 not-italic underline underline-offset-2">
-                Skip
-              </button>
-            )}
-          </p>
-        </div>
+      {generated && (
+        <>
+          <section aria-label="Mission" className="mb-10 border-y-2 border-ink py-5">
+            <p className="font-mono text-xs uppercase tracking-wide text-muted">Mission</p>
+            <h2 className="font-display text-2xl leading-tight sm:text-3xl">{scenario.goal}</h2>
+            <p className="mt-1">
+              <span className="font-mono tabular-nums">
+                {formatPct(baseline)} → {formatPct(mission.targetRate)}
+              </span>{" "}
+              within {mission.horizonMonths} months · budget{" "}
+              <span className="font-mono tabular-nums">{formatMoney(mission.budget.amount, mission.budget)}</span>
+            </p>
 
-        <p className="mt-4 text-sm text-muted">
-          {scenario.target} · baseline{" "}
-          <span className={scenario.baselineBasis === "assumed" ? "text-pen" : ""}>
-            {scenario.baselineBasis === "assumed" ? "⚠ " : ""}
-            {BASIS_LABEL[scenario.baselineBasis]}
-          </span>
-          . {firstSentence}
-          {rest.length > 0 && (
-            <>
-              {showMore && <> {rest.join(" ")}</>}{" "}
-              <button onClick={() => setShowMore((v) => !v)} aria-expanded={showMore} className="underline decoration-rule underline-offset-2">
-                {showMore ? "Show less" : "Read more"}
-              </button>
-            </>
-          )}
-        </p>
-        {scenario.sources.length > 0 && (
-          <details className="mt-2 text-sm text-muted">
-            <summary>{scenario.sources.length} sources</summary>
-            <ul className="mt-1 space-y-0.5">
-              {scenario.sources.map((s) => (
-                <li key={s.url}>
-                  <a href={s.url} target="_blank" rel="noreferrer" className="underline decoration-rule underline-offset-2 hover:decoration-ink">
-                    {cleanTitle(s.title, s.url)}
-                  </a>{" "}
-                  <span className="font-mono text-xs">{hostname(s.url)}</span>
-                </li>
-              ))}
-            </ul>
-          </details>
-        )}
-      </section>
+            <div className="mt-5">
+              <MissionMeter
+                baseline={baseline}
+                target={mission.targetRate}
+                value={meterValue}
+                direction={direction}
+                betRate={chosen.length ? baseline + sign * bet : null}
+                extras={[baseline + sign * claim]}
+                tone={meterTone}
+                verdict={phase === "done" && outcome?.score ? (outcome.score.missionMet ? "met" : "missed") : null}
+              />
+              <p className="mt-2 text-sm italic text-muted" aria-live="polite">
+                {caption[phase]}
+                {(phase === "strike" || phase === "settle" || phase === "drop") && (
+                  <button onClick={skip} className="ml-3 not-italic underline underline-offset-2">
+                    Skip
+                  </button>
+                )}
+              </p>
+            </div>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_26rem]">
-        <section aria-labelledby="iv-heading">
-          <div className="mb-2 flex items-baseline justify-between gap-4">
-            <h2 id="iv-heading" className="font-display text-2xl">
-              Spend the budget
-            </h2>
-            <p className="font-mono text-xs text-muted">tick the nudges you can afford</p>
-          </div>
-
-          <div className="mb-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 font-mono text-xs tabular-nums">
-              <span>
-                Spent {formatMoney(spent, mission.budget)} of {formatMoney(mission.budget.amount, mission.budget)}
+            <p className="mt-4 text-sm text-muted">
+              {scenario.target} · baseline{" "}
+              <span className={scenario.baselineBasis === "assumed" ? "text-pen" : ""}>
+                {scenario.baselineBasis === "assumed" ? "⚠ " : ""}
+                {BASIS_LABEL[scenario.baselineBasis]}
               </span>
-              <span className={remaining <= 0 ? "text-pen" : "text-muted"}>{formatMoney(Math.max(0, remaining), mission.budget)} left</span>
-            </div>
-            <div className="mt-1 h-2 border border-ink/60 bg-white/40" role="img" aria-label={`${Math.round(spentPct)}% of the budget spent`}>
-              <div className="h-full bg-ink transition-[width] duration-300" style={{ width: `${spentPct}%` }} />
-            </div>
-            <p className="mt-1 text-xs italic text-muted">Costs and budget are illustrative planning assumptions, not sourced figures.</p>
-          </div>
-
-          <ul className="border-b border-rule">
-            {interventions.map((iv, i) => {
-              const over = spent + iv.cost > mission.budget.amount;
-              return (
-                <InterventionRow
-                  key={iv.id}
-                  index={i}
-                  intervention={iv}
-                  direction={direction}
-                  selected={selected.has(iv.id)}
-                  onToggle={toggle}
-                  review={revealed.has(iv.id) ? critique?.interventions?.find((c) => c.id === iv.id) : undefined}
-                  costLabel={formatMoney(iv.cost, mission.budget)}
-                  blockedReason={revealing ? "reveal in progress" : over ? "over budget" : undefined}
-                />
-              );
-            })}
-          </ul>
-        </section>
-
-        <aside className="space-y-8 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
-          {chosen.length > 0 && phase === "plan" && (
-            <BetPanel
-              claim={claim}
-              bet={bet}
-              max={betMax}
-              step={betStep}
-              spent={formatMoney(spent, mission.budget)}
-              disabled={building}
-              onChange={setBetOverride}
-              onLock={() => void lockInAndRun()}
-            />
-          )}
-          {chosen.length === 0 && (
-            <p className="text-sm text-muted">Choose one or more interventions to build a portfolio. Then bet on what it will deliver.</p>
-          )}
-          {reviewError && (
-            <p role="alert" className="text-sm text-pen">
-              {reviewError}
-            </p>
-          )}
-
-          <RedlineChart interventions={interventions} direction={direction} critique={visibleCritique} selectedIds={selected} />
-
-          {histogram && (phase === "drop" || phase === "done") && outcome?.score && (
-            <PlinkoHistogram histogram={histogram} target={mission.targetRate} successShare={outcome.score.chance} />
-          )}
-
-          {phase === "done" && outcome?.score && (
-            <ScoreCard score={outcome.score} rank={rankTitle(avgCalibration)} runs={history.length} avgCalibration={avgCalibration} onRetry={retry} />
-          )}
-
-          {phase === "done" && critique && (
-            <>
-              <ReviewerNotes critique={critique} interventions={interventions} onSelectCombination={choose} />
-              {rows.length > 0 && (
-                <details>
-                  <summary className="font-display text-lg">Per-intervention numbers</summary>
-                  <div className="mt-3">
-                    <ResultsLedger rows={rows} baselineRate={baseline} direction={direction} reviewing={false} />
-                  </div>
-                </details>
+              . {firstSentence}
+              {rest.length > 0 && (
+                <>
+                  {showMore && <> {rest.join(" ")}</>}{" "}
+                  <button onClick={() => setShowMore((v) => !v)} aria-expanded={showMore} className="underline decoration-rule underline-offset-2">
+                    {showMore ? "Show less" : "Read more"}
+                  </button>
+                </>
               )}
-            </>
-          )}
-          {phase === "done" && (
-            <p className="font-mono text-xs text-muted">
-              Gains are percentage points toward the goal. Your bet {formatPp(lockedBet)}.
             </p>
-          )}
-        </aside>
-      </div>
+            {scenario.sources.length > 0 && (
+              <details className="mt-2 text-sm text-muted">
+                <summary>{scenario.sources.length} sources</summary>
+                <ul className="mt-1 space-y-0.5">
+                  {scenario.sources.map((s) => (
+                    <li key={s.url}>
+                      <a href={s.url} target="_blank" rel="noreferrer" className="underline decoration-rule underline-offset-2 hover:decoration-ink">
+                        {cleanTitle(s.title, s.url)}
+                      </a>{" "}
+                      <span className="font-mono text-xs">{hostname(s.url)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </section>
+
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_26rem]">
+            <section aria-labelledby="iv-heading">
+              <div className="mb-2 flex items-baseline justify-between gap-4">
+                <h2 id="iv-heading" className="font-display text-2xl">
+                  Spend the budget
+                </h2>
+                <p className="font-mono text-xs text-muted">tick the nudges you can afford</p>
+              </div>
+
+              <div className="mb-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 font-mono text-xs tabular-nums">
+                  <span>
+                    Spent {formatMoney(spent, mission.budget)} of {formatMoney(mission.budget.amount, mission.budget)}
+                  </span>
+                  <span className={remaining <= 0 ? "text-pen" : "text-muted"}>{formatMoney(Math.max(0, remaining), mission.budget)} left</span>
+                </div>
+                <div className="mt-1 h-2 border border-ink/60 bg-white/40" role="img" aria-label={`${Math.round(spentPct)}% of the budget spent`}>
+                  <div className="h-full bg-ink transition-[width] duration-300" style={{ width: `${spentPct}%` }} />
+                </div>
+                <p className="mt-1 text-xs italic text-muted">Costs and budget are illustrative planning assumptions, not sourced figures.</p>
+              </div>
+
+              <ul className="border-b border-rule">
+                {interventions.map((iv, i) => {
+                  const over = spent + iv.cost > mission.budget.amount;
+                  return (
+                    <InterventionRow
+                      key={iv.id}
+                      index={i}
+                      intervention={iv}
+                      direction={direction}
+                      selected={selected.has(iv.id)}
+                      onToggle={toggle}
+                      review={revealed.has(iv.id) ? critique?.interventions?.find((c) => c.id === iv.id) : undefined}
+                      costLabel={formatMoney(iv.cost, mission.budget)}
+                      blockedReason={revealing ? "reveal in progress" : over ? "over budget" : undefined}
+                    />
+                  );
+                })}
+              </ul>
+            </section>
+
+            <aside className="space-y-8 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
+              {chosen.length > 0 && phase === "plan" && (
+                <BetPanel
+                  claim={claim}
+                  bet={bet}
+                  max={betMax}
+                  step={betStep}
+                  spent={formatMoney(spent, mission.budget)}
+                  disabled={building}
+                  onChange={setBetOverride}
+                  onLock={() => void lockInAndRun()}
+                />
+              )}
+              {chosen.length === 0 && (
+                <p className="text-sm text-muted">Choose one or more interventions to build a portfolio. Then bet on what it will deliver.</p>
+              )}
+              {reviewError && (
+                <p role="alert" className="text-sm text-pen">
+                  {reviewError}
+                </p>
+              )}
+
+              <RedlineChart interventions={interventions} direction={direction} critique={visibleCritique} selectedIds={selected} />
+
+              {histogram && (phase === "drop" || phase === "done") && outcome?.score && (
+                <PlinkoHistogram histogram={histogram} target={mission.targetRate} successShare={outcome.score.chance} />
+              )}
+
+              {phase === "done" && outcome?.score && (
+                <ScoreCard score={outcome.score} rank={rankTitle(avgCalibration)} runs={history.length} avgCalibration={avgCalibration} onRetry={retry} />
+              )}
+
+              {phase === "done" && critique && (
+                <>
+                  <ReviewerNotes critique={critique} interventions={interventions} onSelectCombination={choose} />
+                  {rows.length > 0 && (
+                    <details>
+                      <summary className="font-display text-lg">Per-intervention numbers</summary>
+                      <div className="mt-3">
+                        <ResultsLedger rows={rows} baselineRate={baseline} direction={direction} reviewing={false} />
+                      </div>
+                    </details>
+                  )}
+                </>
+              )}
+              {phase === "done" && (
+                <p className="font-mono text-xs text-muted">
+                  Gains are percentage points toward the goal. Your bet {formatPp(lockedBet)}.
+                </p>
+              )}
+            </aside>
+          </div>
+        </>
+      )}
     </main>
   );
 }
