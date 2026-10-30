@@ -30,6 +30,8 @@ export interface Scenario {
   goal: string;
   target: string;
   baselineRate: number; // percentage
+  /** "user" = supplied by the caller, "evidence" = taken from a cited source, "assumed" = model estimate. */
+  baselineBasis: "user" | "evidence" | "assumed";
   context: string;
   /** Where the scenario came from: bundled demo data or AI-generated from web evidence. */
   source: "default" | "generated";

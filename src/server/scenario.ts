@@ -6,6 +6,7 @@ import { discoverEvidence, EvidenceSnippet } from "./tavily";
 interface RawScenario {
   target?: string;
   baselineRate?: number;
+  baselineBasis?: string;
   context?: string;
   interventions?: Partial<Intervention>[];
 }
@@ -15,6 +16,7 @@ Use ONLY the numbered evidence sources provided. Reply with a single JSON object
 {
   "target": string,            // the population
   "baselineRate": number,      // current % (0-100) of the target behavior; use evidence if available, otherwise a clearly reasonable estimate
+  "baselineBasis": "evidence" | "assumed",   // "evidence" ONLY if a provided source reports this rate for a comparable population; otherwise "assumed"
   "context": string,           // 2-3 sentences of context and key assumptions
   "interventions": [           // EXACTLY 5
     {
@@ -29,7 +31,7 @@ Use ONLY the numbered evidence sources provided. Reply with a single JSON object
     }
   ]
 }
-Effect sizes must be conservative and realistic: single nudges (reminders, messaging, simplification) in field settings usually move behavior by roughly 1-10 percentage points, rarely more than 15; only strong structural changes (defaults, mandates, automatic enrolment) or large incentives can exceed that. Do not copy an effect from a study of a different population without shrinking it. Combined or stacked nudges must not simply sum their effects. Never use a social-norm claim that would be false for the target population. Baseline and gains must keep baseline + high <= 100.
+Effect sizes must be conservative and realistic: single nudges (reminders, messaging, simplification) in field settings usually move behavior by roughly 1-10 percentage points, rarely more than 15; only strong structural changes (defaults, mandates, automatic enrolment) or large incentives can exceed that. Do not copy an effect from a study of a different population without shrinking it. Combined or stacked nudges must not simply sum their effects. Never use a social-norm claim that would be false for the target population. Be honest about baselineBasis: most low-data contexts have no measured baseline. Baseline and gains must keep baseline + high <= 100.
 Never invent sources or statistics. When evidence is thin, widen the effect range and mark it a hypothesis.`;
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -69,7 +71,8 @@ function sanitize(raw: RawScenario, goal: string, evidence: EvidenceSnippet[], u
   });
 
   const modelBaseline = Number(raw.baselineRate);
-  const baselineRate = Number.isFinite(userBaseline)
+  const hasUserBaseline = Number.isFinite(userBaseline);
+  const baselineRate = hasUserBaseline
     ? (userBaseline as number)
     : Number.isFinite(modelBaseline)
       ? Math.min(100, Math.max(0, modelBaseline))
@@ -80,6 +83,7 @@ function sanitize(raw: RawScenario, goal: string, evidence: EvidenceSnippet[], u
       goal,
       target: raw.target ?? "General population",
       baselineRate,
+      baselineBasis: hasUserBaseline ? "user" : raw.baselineBasis === "evidence" ? "evidence" : "assumed",
       context: raw.context ?? "",
       source: "generated",
       sources: evidence.map(({ title, url }) => ({ title, url })),

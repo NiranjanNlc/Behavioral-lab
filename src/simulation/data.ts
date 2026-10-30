@@ -8,6 +8,7 @@ export const defaultScenario: Scenario = {
   goal: "Increase recycling participation",
   target: "Urban households",
   baselineRate: 42,
+  baselineBasis: "assumed",
   context: "Illustrative demo scenario. Generate a scenario to ground it in web evidence.",
   source: "default",
   sources: [],

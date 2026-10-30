@@ -98,7 +98,16 @@ export default function Home() {
           <p className="text-sm text-gray-500">Target</p>
           <p className="font-medium text-gray-900 mb-2">{scenario.target}</p>
           <p className="text-sm text-gray-500">Baseline rate</p>
-          <p className="text-2xl font-bold text-gray-900 mb-2">{scenario.baselineRate}%</p>
+          <p className="text-2xl font-bold text-gray-900 mb-2">
+            {scenario.baselineRate}%
+            <span
+              className={`ml-2 align-middle text-xs font-medium px-2 py-0.5 rounded ${
+                scenario.baselineBasis === "assumed" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+              }`}
+            >
+              {{ user: "provided by you", evidence: "from cited evidence", assumed: "assumed — not measured" }[scenario.baselineBasis]}
+            </span>
+          </p>
           <p className="text-sm text-gray-600">{scenario.context}</p>
           {scenario.sources.length > 0 && (
             <details className="mt-2 text-xs text-gray-600">
