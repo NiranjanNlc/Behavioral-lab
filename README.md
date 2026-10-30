@@ -4,15 +4,33 @@ A behavioral-science simulation tool built with Next.js. BehaviorLab lets users 
 
 ## Overview
 
-BehaviorLab presents a scenario (e.g. increasing recycling participation among urban households) and offers a set of evidence-based interventions to choose from:
+Enter any behavioral or policy goal (e.g. *Increase on-time VAT filing among Nepali SMEs*). BehaviorLab:
 
-- **Default** — Make recycling the default option to reduce friction.
-- **Reminder** — Send timely reminders about recycling schedules.
-- **Social Proof** — Show neighborhood participation rates to leverage social norms.
-- **Financial Incentive** — Provide monetary rewards for participation.
-- **Loss Framing** — Frame non-recycling as a loss to tap into loss aversion.
+1. **Discovers evidence** with Tavily (behavioral-science research, policy experiments).
+2. **Generates a scenario** with Nemotron Super: five interventions, each with low/medium/high effect estimates, citations, and assumptions. Each is labelled *research-backed* or *hypothesis*.
+3. **Simulates** with a Monte Carlo engine (5,000 trials over triangular effect distributions): expected, median, 5th/95th percentile, worst/best case, probability of improvement, and combined-nudge runs with diminishing returns.
+4. **Critiques** with Nemotron 3 Ultra acting as a skeptical reviewer: evidence strength, comparability, realism, and recommended combinations.
 
-Select an intervention, run the simulation, and instantly see the projected impact on participation rates.
+Without API keys the app falls back to an illustrative recycling scenario (all hypotheses).
+
+## Configuration
+
+Create `.env.local` (keys stay server-side, used only by `/api/scenario` and `/api/critique`):
+
+```
+TAVILY_API_KEY=...
+NEBIUS_API_KEY=...
+# optional overrides
+NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1
+NEBIUS_SUPER_MODEL=nvidia/nemotron-3-super-120b-a12b
+NEBIUS_ULTRA_MODEL=nvidia/Nemotron-3-Ultra-550b-a55b
+```
+
+Verify the model IDs against your Nebius console.
+
+## WebMCP tools
+
+`generate_scenario`, `get_scenario`, `list_interventions`, `run_simulation`, `compare_interventions`, `explain_result`.
 
 ## Tech Stack
 

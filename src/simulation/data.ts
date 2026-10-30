@@ -1,50 +1,69 @@
 import { Intervention, Scenario } from "./types";
 
-export const scenario: Scenario = {
+/**
+ * Offline fallback used until a scenario is generated. The effect ranges are
+ * illustrative assumptions (hypotheses), not figures taken from research.
+ */
+export const defaultScenario: Scenario = {
   goal: "Increase recycling participation",
   target: "Urban households",
   baselineRate: 42,
+  context: "Illustrative demo scenario. Generate a scenario to ground it in web evidence.",
+  source: "default",
+  sources: [],
 };
 
-export const interventions: Intervention[] = [
+const hypothesis = {
+  evidenceType: "hypothesis" as const,
+  evidenceStrength: "weak" as const,
+  assumptions: ["Illustrative effect range, not drawn from cited research."],
+  citations: [],
+};
+
+export const defaultInterventions: Intervention[] = [
   {
     id: "default",
     name: "Default",
     description: "Making recycling the default option for households.",
-    effect: 7,
     mechanism:
       "Making recycling the default reduces friction and makes the desired behavior easier to choose.",
+    effect: { low: 3, medium: 7, high: 11 },
+    ...hypothesis,
   },
   {
     id: "reminder",
     name: "Reminder",
     description: "Sending timely reminders about recycling schedules.",
-    effect: 4,
     mechanism:
       "A timely reminder increases the likelihood that people remember to perform the desired behavior.",
+    effect: { low: 1, medium: 4, high: 7 },
+    ...hypothesis,
   },
   {
     id: "social-proof",
     name: "Social Proof",
     description: "Showing neighborhood recycling participation rates.",
-    effect: 9,
     mechanism:
       "Showing that many peers participate can increase perceived social norms around the behavior.",
+    effect: { low: 2, medium: 9, high: 14 },
+    ...hypothesis,
   },
   {
     id: "financial-incentive",
     name: "Financial Incentive",
     description: "Providing a financial reward for recycling participation.",
-    effect: 15,
     mechanism:
       "A financial reward increases the immediate perceived benefit of participating.",
+    effect: { low: 4, medium: 15, high: 22 },
+    ...hypothesis,
   },
   {
     id: "loss-framing",
     name: "Loss Framing",
     description: "Framing non-recycling as a loss rather than recycling as a gain.",
-    effect: 12,
     mechanism:
       "Framing non-participation as a potential loss can increase motivation through loss sensitivity.",
+    effect: { low: 0, medium: 12, high: 20 },
+    ...hypothesis,
   },
 ];
