@@ -1,6 +1,7 @@
 import { Citation, Direction, EvidenceStrength, Intervention, Mission, Scenario } from "@/simulation/types";
 import { superModel } from "./config";
 import { bestPortfolioGain, targetFromGain } from "@/simulation/game";
+import { cached } from "./cache";
 import { chatJson } from "./nebius";
 import { discoverEvidence, EvidenceSnippet } from "./tavily";
 
@@ -168,16 +169,47 @@ function sanitize(
   };
 }
 
-/** Tavily evidence discovery followed by Nemotron Super scenario generation. */
+/** Bump when SYSTEM_PROMPT or sanitizing rules change, so older cached scenarios are not served. */
+export const SCENARIO_PROMPT_VERSION = 4;
+
+/**
+ * Tavily evidence discovery followed by Nemotron Super scenario generation.
+ * Both steps are cached, so repeating a goal makes no upstream calls unless `refresh` is set.
+ */
 export async function generateScenario(
   goal: string,
   target?: string,
   baselineRate?: number,
-  suppliedEvidence?: EvidenceSnippet[]
+  suppliedEvidence?: EvidenceSnippet[],
+  refresh = false
 ) {
-  const evidence = suppliedEvidence?.length ? suppliedEvidence : await discoverEvidence(goal, target);
+  let evidence = suppliedEvidence?.length ? suppliedEvidence : undefined;
+  let evidenceCached = true;
+  if (!evidence) {
+    const found = await discoverEvidence(goal, target, refresh);
+    evidence = found.value;
+    evidenceCached = found.cached;
+  }
   if (evidence.length === 0) throw new Error("Tavily returned no evidence for this goal.");
+  const used = evidence;
 
+  const { value, cached: scenarioCached } = await cached(
+    "scenario",
+    {
+      v: SCENARIO_PROMPT_VERSION,
+      model: superModel(),
+      goal,
+      target,
+      baselineRate,
+      sources: used.map((e) => e.url).sort(),
+    },
+    () => draftScenario(goal, target, baselineRate, used),
+    { refresh }
+  );
+  return { ...value, cached: scenarioCached && evidenceCached };
+}
+
+async function draftScenario(goal: string, target: string | undefined, baselineRate: number | undefined, evidence: EvidenceSnippet[]) {
   const sources = evidence
     .map((e, i) => `[${i + 1}] ${e.title} (${e.url})\n${e.content}`)
     .join("\n\n");

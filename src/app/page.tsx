@@ -80,7 +80,7 @@ function evaluate(
 }
 
 export default function Home() {
-  const { scenario, interventions, critique } = useSyncExternalStore(subscribeLabState, getLabState, getLabState);
+  const { scenario, interventions, critique, fromCache } = useSyncExternalStore(subscribeLabState, getLabState, getLabState);
   const [goal, setGoal] = useState(EXAMPLE_GOALS[0]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [betOverride, setBetOverride] = useState<number | null>(null);
@@ -134,12 +134,12 @@ export default function Home() {
     setShowMore(false);
   };
 
-  const build = async (g: string) => {
+  const build = async (g: string, refresh = false) => {
     if (!g.trim() || building) return;
     setError(null);
     setReviewError(null);
     try {
-      await generateScenario(g.trim(), undefined, undefined, setProgress);
+      await generateScenario(g.trim(), undefined, undefined, setProgress, refresh);
       reset();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Scenario generation failed.");
@@ -432,6 +432,18 @@ export default function Home() {
                 </>
               )}
             </p>
+            {fromCache && (
+              <p className="mt-2 font-mono text-xs text-muted">
+                Loaded from cache, no API calls made.{" "}
+                <button
+                  onClick={() => void build(scenario.goal, true)}
+                  disabled={building || revealing}
+                  className="underline underline-offset-2 disabled:opacity-40"
+                >
+                  Rebuild with fresh research
+                </button>
+              </p>
+            )}
             {scenario.sources.length > 0 && (
               <details className="mt-2 text-sm text-muted">
                 <summary>{scenario.sources.length} sources</summary>

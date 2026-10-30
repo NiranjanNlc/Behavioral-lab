@@ -6,9 +6,11 @@ export interface LabState {
   interventions: Intervention[];
   /** Reviewer's critique of the current scenario, once requested. */
   critique: Critique | null;
+  /** True when the active scenario was served from the server cache (no upstream API calls). */
+  fromCache: boolean;
 }
 
-let state: LabState = { scenario: defaultScenario, interventions: defaultInterventions, critique: null };
+let state: LabState = { scenario: defaultScenario, interventions: defaultInterventions, critique: null, fromCache: false };
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((l) => l());
@@ -17,8 +19,8 @@ const emit = () => listeners.forEach((l) => l());
 export const getLabState = (): LabState => state;
 
 /** Replaces the scenario; any previous critique no longer applies and is cleared. */
-export function setLabState(next: { scenario: Scenario; interventions: Intervention[] }): void {
-  state = { ...next, critique: null };
+export function setLabState(next: { scenario: Scenario; interventions: Intervention[]; fromCache?: boolean }): void {
+  state = { scenario: next.scenario, interventions: next.interventions, critique: null, fromCache: next.fromCache ?? false };
   emit();
 }
 

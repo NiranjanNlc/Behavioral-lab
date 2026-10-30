@@ -12,7 +12,8 @@ export async function POST(request: Request) {
 
   try {
     const results = interventions.map((i) => runSimulation(scenario.baselineRate, i, { direction: scenario.direction }));
-    return Response.json(await critiqueScenario(scenario, interventions, results));
+    const { value, cached } = await critiqueScenario(scenario, interventions, results, body.refresh === true);
+    return Response.json(value, { headers: { "X-Cache": cached ? "HIT" : "MISS" } });
   } catch (err) {
     return Response.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 502 });
   }

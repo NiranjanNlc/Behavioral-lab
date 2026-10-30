@@ -27,16 +27,18 @@ export async function generateScenario(
   goal: string,
   target?: string,
   baselineRate?: number,
-  onProgress?: (p: GenerateProgress) => void
+  onProgress?: (p: GenerateProgress) => void,
+  refresh = false
 ) {
   onProgress?.({ stage: "searching" });
-  const { evidence } = await post<{ evidence: unknown[] }>("/api/evidence", { goal, target });
+  const { evidence } = await post<{ evidence: unknown[] }>("/api/evidence", { goal, target, refresh });
   onProgress?.({ stage: "drafting", sourceCount: evidence.length });
-  const next = await post<{ scenario: Scenario; interventions: Intervention[] }>("/api/scenario", {
+  const next = await post<{ scenario: Scenario; interventions: Intervention[]; cached?: boolean }>("/api/scenario", {
     goal,
     target,
     baselineRate,
     evidence,
+    refresh,
   });
 
   // Let the reviewer pre-read the scenario so the mission target is one the evidence could support.
@@ -44,7 +46,7 @@ export async function generateScenario(
   onProgress?.({ stage: "calibrating" });
   let review: Critique | null = null;
   try {
-    review = await post<Critique>("/api/critique", { scenario: next.scenario, interventions: next.interventions });
+    review = await post<Critique>("/api/critique", { scenario: next.scenario, interventions: next.interventions, refresh });
   } catch {
     // Without a review the preliminary target from the server is kept.
   }
@@ -58,7 +60,7 @@ export async function generateScenario(
         0.75
       )
     : mission.targetRate;
-  setLabState({ scenario: { ...scenario, mission: { ...mission, targetRate } }, interventions });
+  setLabState({ scenario: { ...scenario, mission: { ...mission, targetRate } }, interventions, fromCache: !!next.cached });
   if (review) setCritique(review);
   return getLabState();
 }

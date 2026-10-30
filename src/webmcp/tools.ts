@@ -73,16 +73,22 @@ export const generateScenarioTool = {
         maximum: 100,
         description: "Optional current rate (%) of the target behavior; inferred from evidence if omitted.",
       },
+      refresh: {
+        type: "boolean",
+        description: "Skip the cache and redo the web research and model calls. Repeated goals are otherwise served from cache.",
+      },
     },
     required: ["goal"],
   } as const,
-  execute: async (params: { goal: string; target?: string; baselineRate?: number }) => {
+  execute: async (params: { goal: string; target?: string; baselineRate?: number; refresh?: boolean }) => {
     if (typeof params?.goal !== "string" || !params.goal.trim()) return fail("A non-empty 'goal' is required.");
     try {
       const { scenario, interventions } = await generateScenario(
         params.goal.trim(),
         params.target,
-        params.baselineRate
+        params.baselineRate,
+        undefined,
+        params.refresh === true
       );
       return text({ scenario, interventions });
     } catch (err) {

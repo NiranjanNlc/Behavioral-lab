@@ -1,5 +1,6 @@
 import { Critique, Intervention, Scenario, SimulationResult } from "@/simulation/types";
 import { ultraModel } from "./config";
+import { cached } from "./cache";
 import { chatJson } from "./nebius";
 
 const SYSTEM_PROMPT = `You are a skeptical policy reviewer. A different model proposed these interventions and effect sizes; your job is to challenge them, not justify them.
@@ -15,7 +16,25 @@ Treat anything marked "hypothesis" as untested. Reply with a single JSON object,
   "caveats": string[]
 }`;
 
-export async function critiqueScenario(
+/** Bump when SYSTEM_PROMPT changes, so older cached critiques are not served. */
+export const CRITIQUE_PROMPT_VERSION = 3;
+
+/** Cached: the same scenario and interventions are reviewed once, not on every request. */
+export function critiqueScenario(
+  scenario: Scenario,
+  interventions: Intervention[],
+  results: SimulationResult[],
+  refresh = false
+) {
+  return cached(
+    "critique",
+    { v: CRITIQUE_PROMPT_VERSION, model: ultraModel(), scenario, interventions },
+    () => review(scenario, interventions, results),
+    { refresh }
+  );
+}
+
+async function review(
   scenario: Scenario,
   interventions: Intervention[],
   results: SimulationResult[]

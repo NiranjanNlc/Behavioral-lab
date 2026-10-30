@@ -1,4 +1,5 @@
 import { cleanTitle } from "@/simulation/format";
+import { cached } from "./cache";
 import { requireEnv } from "./config";
 
 export interface EvidenceSnippet {
@@ -29,7 +30,7 @@ async function search(query: string): Promise<EvidenceSnippet[]> {
 }
 
 /** Searches for behavioral-science evidence relevant to a policy goal, de-duplicated by URL. */
-export async function discoverEvidence(goal: string, target?: string): Promise<EvidenceSnippet[]> {
+async function discover(goal: string, target?: string): Promise<EvidenceSnippet[]> {
   const subject = target ? `${goal} among ${target}` : goal;
   const queries = [
     `behavioral nudge randomized controlled trial effect size ${subject}`,
@@ -39,4 +40,9 @@ export async function discoverEvidence(goal: string, target?: string): Promise<E
   const batches = await Promise.all(queries.map(search));
   const seen = new Set<string>();
   return batches.flat().filter((r) => !seen.has(r.url) && seen.add(r.url));
+}
+
+/** Cached wrapper: the same goal and target reuse the earlier Tavily results instead of searching again. */
+export async function discoverEvidence(goal: string, target?: string, refresh = false) {
+  return cached("evidence", { goal, target }, () => discover(goal, target), { refresh });
 }

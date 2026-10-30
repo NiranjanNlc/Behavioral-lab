@@ -70,6 +70,22 @@ curl -s https://api.tokenfactory.nebius.com/v1/models -H "Authorization: Bearer 
 
 A "model does not exist" (404) error means the ID needs overriding.
 
+## Caching
+
+Paid calls are cached on the server so repeating a goal makes no API calls (first build is about 30–50 seconds; a repeat is under a second):
+
+- **What:** Tavily evidence, the Nemotron Super scenario, and the Nemotron Ultra critique.
+- **Where:** in memory plus JSON files in `.cache/behaviorlab/` (gitignored), so results survive restarts. On a read-only filesystem it falls back to memory only.
+- **Key:** goal, target, baseline, model IDs, source URLs and a prompt version, normalised for case and spacing. Changing a prompt or model never serves stale results.
+- **Also:** concurrent identical requests share one upstream call, and failures are never cached.
+- **Fresh data:** the page shows "Loaded from cache" with **Rebuild with fresh research**; the `generate_scenario` tool takes `refresh: true`.
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `CACHE_DISABLED` | unset | `1` bypasses the cache entirely |
+| `CACHE_DIR` | `.cache/behaviorlab` | where files are stored |
+| `CACHE_TTL_HOURS` | `168` | expiry (7 days) |
+
 ## WebMCP tools
 
 Registered in the browser on page load via `document.modelContext`, so any WebMCP-compatible agent can drive the app. Tools operate on the active scenario, which is shared with the UI.

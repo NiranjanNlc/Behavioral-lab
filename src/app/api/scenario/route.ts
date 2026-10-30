@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     : undefined;
 
   try {
-    return Response.json(await generateScenario(goal, target, baselineRate, evidence));
+    return Response.json(await generateScenario(goal, target, baselineRate, evidence, body.refresh === true));
   } catch (err) {
     return Response.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 502 });
   }
