@@ -24,7 +24,7 @@ The judging criteria reported for this hackathon are four equal parts: Technolog
 ### Scene 1: The problem (0:00–0:15) · *Quality of the Idea, Impact*
 **Screen:** the empty page: title, goal box, example chips.
 **Narration:**
-> "Before a government rolls out a policy, someone asks: which nudge will actually work? Ask an AI and it will tell you all of them will. I wanted a tool that argues back."
+> "Before a tax office, a ministry or an NGO rolls out a policy, someone has to decide: which nudge do we fund? Reminders, simpler forms, incentives? Today that's a guess, or a long report nobody has time to read. BehaviorLab turns that decision into something you can test in minutes: pick a goal, spend a budget, and see what actually holds up."
 
 ### Scene 2: Evidence, not guesses (0:15–0:40) · *Technological Implementation*
 **Screen:** type or click **Increase on-time VAT filing among Nepali SMEs**. Show the progress lines: searching the web, "Read [N] sources", drafting, setting a target.
