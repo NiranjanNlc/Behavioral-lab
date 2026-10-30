@@ -35,7 +35,7 @@ Use ONLY the numbered evidence sources provided. Reply with a single JSON object
       "name": string,
       "description": string,
       "mechanism": string,     // behavioral principle
-      "cost": number,          // estimated cost in the SAME currency and unit as the budget; cheap nudges (reminders) cost far less than system builds or incentives. The budget must afford two or three interventions, not all five.
+      "cost": number,          // estimated cost in the SAME currency and unit as the budget; cheap nudges (reminders) cost far less than system builds or incentives. The budget must afford two or three interventions, not all five. Costs must differ realistically across the five (the dearest should cost at least three times the cheapest): messaging and reminders are cheap, incentives, staffing and system changes are expensive. Never give two interventions the same cost.
       "effect": { "low": number, "medium": number, "high": number },  // size of the IMPROVEMENT toward the goal in percentage points (a reduction when direction is "decrease"), always a non-negative magnitude, low<=medium<=high
       "evidenceType": "empirical" | "hypothesis",   // "empirical" ONLY if a provided source reports a comparable effect; otherwise "hypothesis"
       "evidenceStrength": "strong" | "moderate" | "weak",
@@ -170,7 +170,7 @@ function sanitize(
 }
 
 /** Bump when SYSTEM_PROMPT or sanitizing rules change, so older cached scenarios are not served. */
-export const SCENARIO_PROMPT_VERSION = 4;
+export const SCENARIO_PROMPT_VERSION = 5;
 
 /**
  * Tavily evidence discovery followed by Nemotron Super scenario generation.

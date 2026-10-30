@@ -8,41 +8,47 @@ The judging criteria reported for this hackathon are four equal parts: Technolog
 
 ---
 
+## Why this example
+
+**Increase organ donor registration.** Every judge has ticked that box at a licensing office, so there is nothing to explain. It also has a famous headline, "make it the default and almost everyone signs up", that falls apart under scrutiny. Run through BehaviorLab, the reviewer cuts the proposed effects by about ten times, says the default idea has no empirical support in organ donation, and points to active choice at the service desk as the one option that holds up. That is the story: *the exciting answer is not the one that survives.* The baseline also comes from cited evidence, not an assumption, so the demo reads as grounded.
+
+Nepal VAT filing stays in the app as an example chip. Use it as a ten-second cameo (Scene 8) to show the tool works for any goal and any country.
+
 ## Before you record
 
-- [ ] Build the demo goal once so it is cached, then **do not delete `.cache/`**. Numbers on screen will then be identical on every take. The page says "Loaded from cache" with a rebuild link; that is fine, and you can say so.
+- [ ] Build **Increase organ donor registration** once so it is cached, then **do not delete `.cache/`**. Numbers on screen will then be identical on every take. The page says "Loaded from cache" with a rebuild link; that is fine, and you can say so.
 - [ ] For one take of Scene 2, use **Rebuild with fresh research** so the live progress (searching, reading sources, drafting, setting a target) is on camera. Cut it to about 8 seconds.
 - [ ] Record against the production build (`npm run build && npm start`) so the Next.js dev badge and the dev-only WebMCP indicator are not in frame.
 - [ ] Browser at 1300px wide, zoom 110%. Close other tabs. Keep `.env.local` and the terminal with keys out of frame.
-- [ ] Read the actual numbers off your own screen and replace the `[brackets]` below. The figures quoted come from a test run and will differ.
-- [ ] Do not claim an external agent calling the tools unless you have tested one. Scene 6 has an honest fallback.
+- [ ] Read the actual numbers off your own screen and replace the `[brackets]` below. The figures come from one test run (picking Active choice, Performance feedback and the banner ads) and will differ if you rebuild with fresh research or choose other interventions.
+- [ ] Do not claim an external agent calling the tools unless you have tested one. Scene 7 has an honest fallback.
 
 ---
 
 ## Script
 
 ### Scene 1: The problem (0:00–0:15) · *Quality of the Idea, Impact*
-**Screen:** the empty page: title, goal box, example chips.
+**Screen:** the empty page: title, goal box, example chips. Land on the chip **Increase organ donor registration**.
 **Narration:**
-> "Before a tax office, a ministry or an NGO rolls out a policy, someone has to decide: which option do we fund? Reminders, simpler forms, incentives? Today that's a guess, or a long report nobody has time to read. BehaviorLab turns that decision into something you can test in minutes: pick a goal, spend a budget, and see what actually holds up."
+> "Before a tax office, a ministry or an NGO rolls out a policy, someone has to decide: which option do we fund? Think of the donor box at the licensing office. Reminders, simpler forms, incentives? Today that's a guess, or a long report nobody has time to read. BehaviorLab turns that decision into something you can test in minutes: pick a goal, spend a budget, and see what actually holds up."
 
 ### Scene 2: Evidence, not guesses (0:15–0:40) · *Technological Implementation*
-**Screen:** type or click **Increase on-time VAT filing among Nepali SMEs**. Show the progress lines: searching the web, "Read [N] sources", drafting, setting a target.
+**Screen:** click **Increase organ donor registration**. Show the progress lines: searching the web, "Read [N] sources", drafting, setting a target.
 **Narration:**
-> "This is BehaviorLab. I give it a real goal: on-time VAT filing among Nepali small businesses. Tavily searches the web for behavioral-science research. Nemotron Super, running on Nebius Token Factory, reads those sources and drafts five interventions, each with a low, medium and high effect, citations, and a cost in Nepali rupees. Anything it can't back with a source is labelled a hypothesis."
+> "This is BehaviorLab. I give it a goal everyone knows: get more people to register as organ donors. Tavily searches the web for behavioral-science research. Nemotron Super, running on Nebius Token Factory, reads those sources and drafts five interventions, each with a low, medium and high effect, citations, and a cost. Anything it can't back with a source is labelled a hypothesis."
 
-**Screen:** point at the badges on two cards ("hypothesis" dots) and the "assumed, not measured" baseline.
-> "And it tells me when the baseline itself is an assumption."
+**Screen:** point at the "hypothesis" dots on the default opt-in card and at the baseline line ("from cited evidence").
+> "Ideas without a source are flagged as hypotheses, and it tells me whether the starting rate is measured or assumed. Here it is measured: [fifty-three] percent."
 
 ### Scene 3: A mission with a budget (0:40–1:00) · *Design, Quality of the Idea*
-**Screen:** the Mission block: `[35%] → [37%] within 12 months · budget NPR [34] lakh`. Tick cards until two are greyed out "over budget".
+**Screen:** the Mission block: `[53%] → [59.6%] within 12 months · budget USD [28] thousand`. Tick **Active choice**, **Performance feedback** and the **banner ads** (USD [16] thousand); the dearer cards grey out "over budget".
 **Narration:**
-> "Every goal becomes a mission. Reach [thirty-seven] percent, with [thirty-four] lakh rupees. I can't afford everything, so I have to choose. These two are out of budget."
+> "Every goal becomes a mission: lift registration from [fifty-three] to about [sixty] percent, with [twenty-eight] thousand dollars. I can't afford everything, so I have to choose. Active choice at the desk, feedback for staff, and some cheap banner ads."
 
 ### Scene 4: Place your bet (1:00–1:15) · *Design*
-**Screen:** the bet panel: "The proposals claim about [11]pp." Drag the slider down to about [2pp]. Click **Lock in bet and run simulation**.
+**Screen:** the bet panel: "The proposals claim about [12]pp." Drag the slider down to about [5pp]. Click **Lock in bet and run simulation**.
 **Narration:**
-> "Before I see anything, I bet. The proposals claim about eleven points. How much will I really get? I'll bet two."
+> "Before I see anything, I bet. The proposals claim about twelve points. How much will I really get? I'll bet five."
 
 ### Scene 5: The reveal (1:15–1:55) · *Design, Technological Implementation*
 **Screen, in order** (the app paces this itself; talk over it):
@@ -52,12 +58,12 @@ The judging criteria reported for this hackathon are four equal parts: Technolog
 4. The histogram dots drop; the target line sits in the middle of them.
 
 **Narration:**
-> "The optimistic simulation says this is a win. Then a second model, Nemotron 3 Ultra, acts as a skeptical reviewer, and the red pen goes through each proposal. This one assumes eighty percent mobile coverage that nobody verified. This one cites a norm that's factually wrong for Nepal. The meter shrinks from forty-six percent to [thirty-seven]. These dots are five thousand Monte Carlo draws, so instead of one number I get a distribution, and the share past the line is my real chance of success: [fifty-six] percent."
+> "The optimistic simulation says this is a win. Then a second model, Nemotron 3 Ultra, acts as a skeptical reviewer, and the red pen goes through each proposal. The banner ads: the reviewer says the claimed effect is inflated about ten times against the very study it cites. The meter shrinks from about [sixty-five] percent to just under [sixty]. These dots are five thousand simulated outcomes, so instead of one number I get a distribution, and the share past the line is my real chance of success: [forty-nine] percent."
 
 ### Scene 6: The score (1:55–2:15) · *Design, Potential Impact*
 **Screen:** the score card: mission result, chance of success, calibration, efficiency, rank. Click **Swap one intervention and try again**.
 **Narration:**
-> "I'm scored on whether the mission holds up, and on calibration: how close my bet was to what the evidence supports. The point isn't to win. It's to learn to distrust optimistic numbers. Then I swap one intervention and try again."
+> "I'm scored on whether the mission holds up, and on calibration: how close my bet was to what the evidence supports. I bet five, the evidence said about six and a half. The point isn't to win. It's to learn to distrust optimistic numbers. And that famous default opt-in? The reviewer found no empirical support for it in organ donation. Let me swap one intervention and try again."
 
 ### Scene 7: Any agent can use it (2:15–2:35) · *Technological Implementation, Potential Impact*
 **Screen:** a slide listing the six WebMCP tools: `generate_scenario`, `get_scenario`, `list_interventions`, `run_simulation`, `compare_interventions`, `explain_result`.
@@ -67,7 +73,7 @@ The judging criteria reported for this hackathon are four equal parts: Technolog
 *Only if you have tested it:* cut to a short clip of an agent calling `run_simulation` on the open page. *Otherwise* stay on the slide.
 
 ### Scene 8: Under the hood (2:35–2:50) · *Technological Implementation*
-**Screen:** a clean architecture slide: Goal → Tavily → Nemotron Super → Monte Carlo engine → Nemotron 3 Ultra → WebMCP, with "Nebius Token Factory" underneath, and "cached: repeat goals take under a second".
+**Screen:** a clean architecture slide (optional five-second cameo first: click the chip **Increase on-time VAT filing among Nepali SMEs** and say "Same tool, any goal: here it is on-time tax filing in Nepal."; cut this if you are over time): Goal → Tavily → Nemotron Super → Monte Carlo engine → Nemotron 3 Ultra → WebMCP, with "Nebius Token Factory" underneath, and "cached: repeat goals take under a second".
 **Narration:**
 > "Tavily for evidence, Nemotron Super on Nebius to draft, a Monte Carlo engine to simulate, Nemotron 3 Ultra to challenge it. Responses are cached, so a repeated goal costs nothing and takes under a second."
 

@@ -29,6 +29,7 @@ import ReviewerNotes from "@/components/ReviewerNotes";
 import ScoreCard, { Score } from "@/components/ScoreCard";
 
 const EXAMPLE_GOALS = [
+  "Increase organ donor registration",
   "Increase on-time VAT filing among Nepali SMEs",
   "Increase vaccination uptake in rural districts",
   "Reduce teen vaping",

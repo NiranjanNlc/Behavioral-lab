@@ -8,7 +8,7 @@
 
 Every goal becomes a mission with a budget:
 
-1. **Mission.** For example "35% → 37% within 12 months, budget NPR 34 lakh", with a progress meter toward the target. The target is calibrated to what the *reviewer-adjusted* evidence says the best affordable portfolio can deliver (75% of it), so the mission is winnable, but only with a good portfolio.
+1. **Mission.** For example "53% → 59.6% within 12 months, budget USD 28 thousand", with a progress meter toward the target. The target is calibrated to what the *reviewer-adjusted* evidence says the best affordable portfolio can deliver (75% of it), so the mission is winnable, but only with a good portfolio.
 2. **Spend.** Each intervention has a cost. The budget always affords two or three nudges, never all five, so you have to trade off. Over-budget rows are disabled.
 3. **Bet.** Before anything runs you set how many percentage points you expect to actually gain. The slider starts at what the proposals claim; accepting that default is the optimist's mistake.
 4. **Reveal.** The optimistic result fills the meter and looks like a win. Then the red pen strikes through each card in turn, the meter shrinks to the reviewer-adjusted result, and 5,000 simulated outcomes drop into a histogram with the target as a vertical line. *Skip* jumps to the score.
