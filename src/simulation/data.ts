@@ -6,6 +6,7 @@ import { Intervention, Scenario } from "./types";
  */
 export const defaultScenario: Scenario = {
   goal: "Increase recycling participation",
+  direction: "increase",
   target: "Urban households",
   baselineRate: 42,
   baselineBasis: "assumed",

@@ -34,7 +34,7 @@ export function sampleTriangular({ low, medium, high }: EffectRange, u: number):
 }
 
 const clampRate = (r: number) => Math.min(100, Math.max(0, r));
-const round = (n: number, dp = 2) => Math.round(n * 10 ** dp) / 10 ** dp;
+const round = (n: number, dp = 1) => Math.round(n * 10 ** dp) / 10 ** dp;
 
 function percentile(sorted: number[], p: number): number {
   const idx = (sorted.length - 1) * p;
@@ -46,9 +46,10 @@ function percentile(sorted: number[], p: number): number {
 function monteCarlo(
   baselineRate: number,
   ranges: EffectRange[],
-  { trials = DEFAULT_TRIALS, seed = DEFAULT_SEED }: SimulationOptions
+  { trials = DEFAULT_TRIALS, seed = DEFAULT_SEED, direction = "increase" }: SimulationOptions
 ): Omit<SimulationResult, "intervention"> {
   const rng = createRng(seed);
+  const sign = direction === "decrease" ? -1 : 1;
   const discount = Math.max(0, 1 - OVERLAP_DISCOUNT * (ranges.length - 1));
   const rates: number[] = new Array(trials);
   let improved = 0;
@@ -56,26 +57,29 @@ function monteCarlo(
   for (let t = 0; t < trials; t++) {
     let total = 0;
     for (const range of ranges) total += sampleTriangular(range, rng());
-    const rate = clampRate(baselineRate + total * discount);
+    const rate = clampRate(baselineRate + sign * total * discount);
     rates[t] = rate;
-    if (rate > baselineRate) improved++;
+    if (sign * (rate - baselineRate) > 0) improved++;
   }
 
   rates.sort((a, b) => a - b);
   const mean = rates.reduce((s, r) => s + r, 0) / trials;
+  const lowest = rates[0];
+  const highest = rates[trials - 1];
 
   return {
     baselineRate,
+    direction,
     trials,
     expectedRate: round(mean),
     medianRate: round(percentile(rates, 0.5)),
     p5Rate: round(percentile(rates, 0.05)),
     p95Rate: round(percentile(rates, 0.95)),
-    worstRate: round(rates[0]),
-    bestRate: round(rates[trials - 1]),
+    worstRate: round(direction === "decrease" ? highest : lowest),
+    bestRate: round(direction === "decrease" ? lowest : highest),
     expectedChange: round(mean - baselineRate),
-    relativeChange: baselineRate === 0 ? 0 : round((mean - baselineRate) / baselineRate, 4),
-    probabilityOfImprovement: round(improved / trials, 4),
+    relativeChange: baselineRate === 0 ? 0 : round((mean - baselineRate) / baselineRate, 3),
+    probabilityOfImprovement: round(improved / trials, 3),
   };
 }
 

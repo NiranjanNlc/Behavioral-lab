@@ -8,8 +8,8 @@ An evidence-based behavioral nudge simulator. Enter any policy goal and Behavior
 
 1. **Evidence discovery (Tavily).** Searches the web for behavioral-science research and policy experiments relevant to the goal.
 2. **Scenario generation (Nemotron Super).** Builds a scenario with the target population, a baseline rate, and five interventions. Each has a low/medium/high effect estimate (percentage points), assumptions, and citations. An intervention is labelled **research-backed** only if it cites a returned source; otherwise it is a **hypothesis**. The baseline is labelled `user`, `evidence`, or `assumed`.
-3. **Probabilistic simulation (`src/simulation/engine.ts`).** Runs 5,000 seeded Monte Carlo trials sampling a triangular distribution over each effect range. Reports the expected, median, 5th/95th percentile, worst and best case, and probability of improvement. Combined nudges are simulated with a 20% diminishing-returns discount per extra nudge.
-4. **Critical review (Nemotron 3 Ultra).** Acts as a skeptical policy reviewer: evidence strength, comparability of the research to the target population, realism of the effect range, concerns, a realistic range of its own, and recommended combinations. The UI can apply the reviewer's ranges to the simulation.
+3. **Probabilistic simulation (`src/simulation/engine.ts`).** Runs 5,000 seeded Monte Carlo draws sampling a triangular distribution over each effect range. Effects are improvements toward the goal, so the engine raises the rate for an "increase" goal (VAT filing, vaccination) and lowers it for a "decrease" goal (vaping, abuse); Nemotron Super sets the direction per scenario. Reports the expected, median, 5th/95th percentile, worst and best case (relative to the goal), and the probability of improvement, rounded to at most one decimal and never above "over 99%". Combined nudges are simulated with a 20% diminishing-returns discount per extra nudge.
+4. **Critical review (Nemotron 3 Ultra).** Acts as a skeptical policy reviewer: evidence strength, comparability of the research to the target population, realism of the effect range, concerns, a realistic range of its own, and recommended combinations. The review runs automatically after the first simulation, and results are shown side by side as **Optimistic** (Super's ranges) and **Reviewer-adjusted** (Ultra's ranges).
 
 Without API keys the app still runs, using an illustrative recycling scenario (all hypotheses, assumed baseline).
 
@@ -25,11 +25,11 @@ cp .env.example .env.local   # then add your two keys
 npm run dev
 ```
 
-Open <http://localhost:3000>, keep or edit the policy goal, and click **Build scenario** (takes about 20 seconds). Then:
+Open <http://localhost:3000>. The page has three steps:
 
-1. Select an intervention and click **RUN SIMULATION**.
-2. Click **CRITICAL REVIEW** (about 10 seconds) to get the skeptical assessment.
-3. Click **Apply reviewer's ranges to simulation** and run again to see the more conservative result.
+1. **Goal.** Type a goal or click an example chip, then **Build scenario** (about 20 seconds; the page shows real progress: searching, then "Read N sources", then drafting).
+2. **Interventions.** Tick one or more. The chart on the right shows each proposed effect range.
+3. **Stress-test.** Click **Run simulation**. The optimistic result appears at once and the skeptical review starts automatically (about 10 seconds). When it lands, the chart shows the reviewer's range in red against the struck-through proposal, each intervention gets a ⚠ note, the results show Optimistic vs Reviewer-adjusted, and the verdict lists combinations worth trying ("simulate this" runs one).
 
 Restart `npm run dev` after changing `.env.local`.
 
@@ -64,7 +64,7 @@ Registered in the browser on page load via `document.modelContext`, so any WebMC
 | `list_interventions` | The five interventions with effect ranges, evidence type/strength, assumptions, citations. |
 | `run_simulation` | Monte Carlo simulation of one intervention (`interventionId`, optional `trials`). |
 | `compare_interventions` | Ranks 2+ interventions with uncertainty ranges; `includeCombination` also simulates them together. |
-| `explain_result` | Nemotron Ultra's critical assessment of an intervention, its realistic range, and recommended combinations. |
+| `explain_result` | Nemotron Ultra's critical assessment (cached after the first call) of an intervention, its realistic range, and recommended combinations. |
 
 Intervention IDs are generated per scenario. Use the ids from `list_interventions`.
 
@@ -85,14 +85,17 @@ src/
 ├── app/
 │   ├── page.tsx              # Goal input, scenario, simulation, review UI
 │   └── api/
-│       ├── scenario/route.ts # POST: Tavily + Nemotron Super -> scenario
+│       ├── evidence/route.ts # POST: Tavily evidence discovery
+│       ├── scenario/route.ts # POST: Nemotron Super -> scenario (runs Tavily itself if no evidence is passed)
 │       └── critique/route.ts # POST: Nemotron Ultra -> critique
-├── components/               # InterventionCard, SimulationResults, CritiquePanel
+├── components/               # InterventionRow, RedlineChart, ResultsLedger, ReviewerNotes, EvidenceScale
 ├── server/                   # Server-only: config, tavily, nebius client, scenario, critique
 ├── simulation/
 │   ├── engine.ts             # Monte Carlo engine
 │   ├── data.ts               # Offline fallback scenario
-│   ├── store.ts              # Active scenario shared by the UI and WebMCP tools
+│   ├── store.ts              # Active scenario + cached critique, shared by the UI and WebMCP tools
+│   ├── format.ts             # Rounding, probability caps, title cleaning
+│   ├── review.ts             # Apply the reviewer's ranges to interventions
 │   ├── client.ts             # Browser helpers that call the API routes
 │   └── types.ts
 └── webmcp/                   # Tool definitions and registration
@@ -107,7 +110,7 @@ src/
 
 ## Tech stack
 
-Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, `@mcp-b/webmcp-polyfill`, Jest 30, ESLint 9.
+Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 (Fraunces, Source Serif 4 and IBM Plex Mono via `next/font`), `@mcp-b/webmcp-polyfill`, Jest 30, ESLint 9.
 
 ## License
 

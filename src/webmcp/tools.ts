@@ -1,10 +1,10 @@
-import { generateScenario, requestCritique } from "@/simulation/client";
+import { generateScenario, getOrRequestCritique } from "@/simulation/client";
 import { runCombinedSimulation, runSimulation } from "@/simulation/engine";
 import { getLabState } from "@/simulation/store";
 import { CombinedSimulationResult, Intervention, SimulationResult } from "@/simulation/types";
 
 const DISCLAIMER =
-  "Probabilistic simulation over estimated effect ranges — not a real-world causal prediction. Interventions marked 'hypothesis' are untested ideas, not research findings.";
+  "Probabilistic (Monte Carlo) simulation over estimated effect ranges — not a real-world causal prediction. Interventions marked 'hypothesis' are untested ideas, not research findings.";
 
 const ID_HINT = "Use an id returned by list_interventions.";
 
@@ -39,7 +39,7 @@ const trialsProperty = {
   type: "integer",
   minimum: 100,
   maximum: 100000,
-  description: "Number of randomized trials (default 5000).",
+  description: "Number of Monte Carlo draws (default 5000).",
 } as const;
 
 const clampTrials = (n?: number) =>
@@ -49,7 +49,7 @@ const clampTrials = (n?: number) =>
 export const getScenarioTool = {
   name: "get_scenario",
   description:
-    "Returns the active policy scenario: goal, target population, baseline rate (%), context, and the web sources used to build it. The scenario is 'default' (illustrative demo) until generate_scenario is called.",
+    "Returns the active policy scenario: goal, direction (increase or decrease), target population, baseline rate (%), context, and the web sources used to build it. The scenario is 'default' (illustrative demo) until generate_scenario is called.",
   inputSchema: { type: "object", properties: {} } as const,
   execute: async () => text(getLabState().scenario),
 };
@@ -95,7 +95,7 @@ export const generateScenarioTool = {
 export const listInterventionsTool = {
   name: "list_interventions",
   description:
-    "Returns the five interventions in the active scenario with id, name, low/medium/high effect (percentage points), evidence type (empirical vs hypothesis), evidence strength, and citations.",
+    "Returns the five interventions in the active scenario with id, name, low/medium/high effect (percentage points of improvement toward the goal), evidence type (empirical vs hypothesis), evidence strength, and citations.",
   inputSchema: { type: "object", properties: {} } as const,
   execute: async () =>
     text(
@@ -118,7 +118,7 @@ export const listInterventionsTool = {
 export const runSimulationTool = {
   name: "run_simulation",
   description:
-    "Runs a probabilistic (Monte Carlo) simulation of one intervention in the active scenario, sampling its low/medium/high effect range over thousands of trials. Returns expected, median, 5th/95th percentile, worst and best-case rates, and the probability of improvement.",
+    "Runs a probabilistic (Monte Carlo) simulation of one intervention in the active scenario, sampling its low/medium/high effect range over thousands of Monte Carlo draws, in the direction of the goal (rate rises for an 'increase' goal, falls for a 'decrease' goal). Returns expected, median, 5th/95th percentile, worst and best-case rates (relative to the goal), and the probability of moving toward the goal.",
   inputSchema: {
     type: "object",
     properties: {
@@ -133,7 +133,7 @@ export const runSimulationTool = {
     const result: Partial<SimulationResult> = runSimulation(
       getLabState().scenario.baselineRate,
       found[0],
-      { trials: clampTrials(params.trials) }
+      { trials: clampTrials(params.trials), direction: getLabState().scenario.direction }
     );
     delete result.intervention;
     return text({
@@ -151,7 +151,7 @@ export const runSimulationTool = {
 export const compareInterventionsTool = {
   name: "compare_interventions",
   description:
-    "Simulates several interventions and compares them side by side, ranked by expected rate, with uncertainty ranges. Optionally also simulates applying them all together (with diminishing returns for overlap).",
+    "Simulates several interventions and compares them side by side, ranked best-first for the goal, with uncertainty ranges. Optionally also simulates applying them all together (with diminishing returns for overlap).",
   inputSchema: {
     type: "object",
     properties: {
@@ -175,8 +175,8 @@ export const compareInterventionsTool = {
     const found = findInterventions(params.interventionIds);
     if (typeof found === "string") return fail(found);
 
-    const { baselineRate } = getLabState().scenario;
-    const options = { trials: clampTrials(params.trials) };
+    const { baselineRate, direction } = getLabState().scenario;
+    const options = { trials: clampTrials(params.trials), direction };
     const comparisons = found
       .map((iv) => {
         const r = runSimulation(baselineRate, iv, options);
@@ -194,7 +194,8 @@ export const compareInterventionsTool = {
           probabilityOfImprovement: r.probabilityOfImprovement,
         };
       })
-      .sort((a, b) => b.expectedRate - a.expectedRate);
+      // Best first: highest rate for an "increase" goal, lowest for a "decrease" goal.
+      .sort((a, b) => (direction === "decrease" ? a.expectedRate - b.expectedRate : b.expectedRate - a.expectedRate));
 
     let combination;
     if (params.includeCombination) {
@@ -205,6 +206,7 @@ export const compareInterventionsTool = {
 
     return text({
       baselineRate,
+      direction,
       comparisons,
       bestIntervention: comparisons[0],
       combination,
@@ -229,17 +231,18 @@ export const explainResultTool = {
     const found = findInterventions([params.interventionId]);
     if (typeof found === "string") return fail(found);
     const iv = found[0];
-    const { scenario, interventions } = getLabState();
-    const sim = runSimulation(scenario.baselineRate, iv);
+    const { scenario } = getLabState();
+    const sim = runSimulation(scenario.baselineRate, iv, { direction: scenario.direction });
 
     try {
-      const critique = await requestCritique(scenario, interventions);
+      const critique = await getOrRequestCritique();
       return text({
         interventionId: iv.id,
         interventionName: iv.name,
         behavioralMechanism: iv.mechanism,
         evidenceType: iv.evidenceType,
         simulatedResult: {
+          direction: sim.direction,
           baselineRate: sim.baselineRate,
           expectedRate: sim.expectedRate,
           p5Rate: sim.p5Rate,

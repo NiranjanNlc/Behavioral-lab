@@ -4,6 +4,7 @@ import { chatJson } from "./nebius";
 import { discoverEvidence, EvidenceSnippet } from "./tavily";
 
 interface RawScenario {
+  direction?: string;
   target?: string;
   baselineRate?: number;
   baselineBasis?: string;
@@ -14,8 +15,9 @@ interface RawScenario {
 const SYSTEM_PROMPT = `You are a behavioral-science analyst building a policy simulation scenario.
 Use ONLY the numbered evidence sources provided. Reply with a single JSON object, no prose:
 {
+  "direction": "increase" | "decrease",   // does the goal RAISE the rate (e.g. filing, vaccination) or LOWER it (e.g. abuse, vaping, defaults)?
   "target": string,            // the population
-  "baselineRate": number,      // current % (0-100) of the target behavior; use evidence if available, otherwise a clearly reasonable estimate
+  "baselineRate": number,      // current % (0-100) of the target behavior, i.e. the rate being raised or lowered; use evidence if available, otherwise a clearly reasonable estimate
   "baselineBasis": "evidence" | "assumed",   // "evidence" ONLY if a provided source reports this rate for a comparable population; otherwise "assumed"
   "context": string,           // 2-3 sentences of context and key assumptions
   "interventions": [           // EXACTLY 5
@@ -23,7 +25,7 @@ Use ONLY the numbered evidence sources provided. Reply with a single JSON object
       "name": string,
       "description": string,
       "mechanism": string,     // behavioral principle
-      "effect": { "low": number, "medium": number, "high": number },  // percentage-point gain, low<=medium<=high, each >= 0
+      "effect": { "low": number, "medium": number, "high": number },  // size of the IMPROVEMENT toward the goal in percentage points (a reduction when direction is "decrease"), always a non-negative magnitude, low<=medium<=high
       "evidenceType": "empirical" | "hypothesis",   // "empirical" ONLY if a provided source reports a comparable effect; otherwise "hypothesis"
       "evidenceStrength": "strong" | "moderate" | "weak",
       "assumptions": string[],
@@ -31,7 +33,7 @@ Use ONLY the numbered evidence sources provided. Reply with a single JSON object
     }
   ]
 }
-Effect sizes must be conservative and realistic: single nudges (reminders, messaging, simplification) in field settings usually move behavior by roughly 1-10 percentage points, rarely more than 15; only strong structural changes (defaults, mandates, automatic enrolment) or large incentives can exceed that. Do not copy an effect from a study of a different population without shrinking it. Combined or stacked nudges must not simply sum their effects. Never use a social-norm claim that would be false for the target population. Be honest about baselineBasis: most low-data contexts have no measured baseline. Baseline and gains must keep baseline + high <= 100.
+Effect sizes must be conservative and realistic: single nudges (reminders, messaging, simplification) in field settings usually move behavior by roughly 1-10 percentage points, rarely more than 15; only strong structural changes (defaults, mandates, automatic enrolment) or large incentives can exceed that. Do not copy an effect from a study of a different population without shrinking it. Combined or stacked nudges must not simply sum their effects. Never use a social-norm claim that would be false for the target population. Be honest about baselineBasis: most low-data contexts have no measured baseline. Keep the effect within the room available: baseline + high <= 100 for "increase", baseline - high >= 0 for "decrease".
 Never invent sources or statistics. When evidence is thin, widen the effect range and mark it a hypothesis.`;
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -81,6 +83,7 @@ function sanitize(raw: RawScenario, goal: string, evidence: EvidenceSnippet[], u
   return {
     scenario: {
       goal,
+      direction: raw.direction === "decrease" ? "decrease" : "increase",
       target: raw.target ?? "General population",
       baselineRate,
       baselineBasis: hasUserBaseline ? "user" : raw.baselineBasis === "evidence" ? "evidence" : "assumed",
@@ -93,8 +96,13 @@ function sanitize(raw: RawScenario, goal: string, evidence: EvidenceSnippet[], u
 }
 
 /** Tavily evidence discovery followed by Nemotron Super scenario generation. */
-export async function generateScenario(goal: string, target?: string, baselineRate?: number) {
-  const evidence = await discoverEvidence(goal, target);
+export async function generateScenario(
+  goal: string,
+  target?: string,
+  baselineRate?: number,
+  suppliedEvidence?: EvidenceSnippet[]
+) {
+  const evidence = suppliedEvidence?.length ? suppliedEvidence : await discoverEvidence(goal, target);
   if (evidence.length === 0) throw new Error("Tavily returned no evidence for this goal.");
 
   const sources = evidence

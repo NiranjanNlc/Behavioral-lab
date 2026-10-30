@@ -1,3 +1,4 @@
+import { cleanTitle } from "@/simulation/format";
 import { requireEnv } from "./config";
 
 export interface EvidenceSnippet {
@@ -24,7 +25,7 @@ async function search(query: string): Promise<EvidenceSnippet[]> {
   const data = (await res.json()) as {
     results?: { title: string; url: string; content: string }[];
   };
-  return (data.results ?? []).map(({ title, url, content }) => ({ title, url, content }));
+  return (data.results ?? []).map(({ title, url, content }) => ({ title: cleanTitle(title, url), url, content }));
 }
 
 /** Searches for behavioral-science evidence relevant to a policy goal, de-duplicated by URL. */

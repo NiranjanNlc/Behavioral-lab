@@ -47,6 +47,7 @@ describe("runSimulation", () => {
     expect(r.p95Rate).toBeLessThanOrEqual(r.bestRate);
     expect(r.worstRate).toBeGreaterThanOrEqual(42);
     expect(r.bestRate).toBeLessThanOrEqual(60);
+    expect(r.direction).toBe("increase");
   });
 
   it("reports certain improvement for a strictly positive range and none for a zero effect", () => {
@@ -73,6 +74,37 @@ describe("runSimulation", () => {
 
   it("handles a zero baseline", () => {
     expect(runSimulation(0, make(1, 2, 3)).relativeChange).toBe(0);
+  });
+});
+
+describe("direction", () => {
+  it("lowers the rate for a decrease goal and counts that as improvement", () => {
+    const r = runSimulation(30, make(4, 4, 4), { direction: "decrease" });
+    expect(r.direction).toBe("decrease");
+    expect(r.expectedRate).toBe(26);
+    expect(r.expectedChange).toBe(-4);
+    expect(r.probabilityOfImprovement).toBe(1);
+  });
+
+  it("reports worst/best relative to the goal", () => {
+    const r = runSimulation(30, make(2, 5, 9), { direction: "decrease" });
+    expect(r.bestRate).toBeLessThan(r.worstRate);
+    expect(r.bestRate).toBeGreaterThanOrEqual(21);
+    expect(r.worstRate).toBeLessThanOrEqual(28);
+  });
+
+  it("clamps a decrease at 0 and combines in the same direction", () => {
+    expect(runSimulation(3, make(10, 12, 15), { direction: "decrease" }).bestRate).toBe(0);
+    const c = runCombinedSimulation(40, [make(4, 4, 4), make(6, 6, 6)], { direction: "decrease" });
+    expect(c.expectedChange).toBeLessThan(-6);
+    expect(c.expectedChange).toBeGreaterThan(-10);
+  });
+
+  it("rounds outputs to at most one decimal", () => {
+    const r = runSimulation(42, make(1, 5, 11));
+    for (const v of [r.expectedRate, r.p5Rate, r.p95Rate, r.worstRate, r.bestRate]) {
+      expect(Math.round(v * 10) / 10).toBe(v);
+    }
   });
 });
 

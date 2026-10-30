@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const results = interventions.map((i) => runSimulation(scenario.baselineRate, i));
+    const results = interventions.map((i) => runSimulation(scenario.baselineRate, i, { direction: scenario.direction }));
     return Response.json(await critiqueScenario(scenario, interventions, results));
   } catch (err) {
     return Response.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 502 });

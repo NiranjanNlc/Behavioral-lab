@@ -91,8 +91,11 @@ describe("generate_scenario tool", () => {
       scenario: { ...defaultScenario, goal: "VAT filing", source: "generated" },
       interventions: [{ ...defaultInterventions[0], id: "deadline-reminder" }],
     };
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => generated });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ evidence: [{ title: "t", url: "https://x.org", content: "c" }] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => generated });
     const out = await generateScenarioTool.execute({ goal: "VAT filing" });
+    expect((global.fetch as jest.Mock).mock.calls.map((c) => c[0])).toEqual(["/api/evidence", "/api/scenario"]);
     expect(out.isError).toBeUndefined();
     expect(getLabState().scenario.goal).toBe("VAT filing");
   });
@@ -102,6 +105,32 @@ describe("generate_scenario tool", () => {
     const out = await generateScenarioTool.execute({ goal: "x" });
     expect(out.isError).toBe(true);
     expect(out.content[0].text).toContain("TAVILY_API_KEY");
+  });
+});
+
+describe("decrease goals", () => {
+  const decrease = () =>
+    setLabState({
+      scenario: { ...defaultScenario, goal: "Reduce teen vaping", direction: "decrease", baselineRate: 20 },
+      interventions: defaultInterventions,
+    });
+
+  it("run_simulation lowers the rate and reports improvement", async () => {
+    decrease();
+    const out = parse(await runSimulationTool.execute({ interventionId: "default" }));
+    expect(out.direction).toBe("decrease");
+    expect(out.expectedRate).toBeLessThan(20);
+    expect(out.expectedChange).toBeLessThan(0);
+    expect(out.probabilityOfImprovement).toBeGreaterThan(0.9);
+  });
+
+  it("compare_interventions ranks the lowest expected rate first", async () => {
+    decrease();
+    const out = parse(
+      await compareInterventionsTool.execute({ interventionIds: ["reminder", "financial-incentive"] })
+    );
+    expect(out.bestIntervention.interventionId).toBe("financial-incentive");
+    expect(out.comparisons[0].expectedRate).toBeLessThan(out.comparisons[1].expectedRate);
   });
 });
 
@@ -118,6 +147,9 @@ describe("explain_result tool", () => {
     });
     const out = parse(await explainResultTool.execute({ interventionId: "reminder" }));
     expect(out.assessment.evidenceVerdict).toBe("weak");
+    // The critique is cached, so a second call does not hit the API again.
+    await explainResultTool.execute({ interventionId: "default" });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(out.recommendedCombinations).toHaveLength(1);
     expect(out.simulatedResult.baselineRate).toBe(42);
   });
