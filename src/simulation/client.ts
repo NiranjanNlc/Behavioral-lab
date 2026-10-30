@@ -1,5 +1,7 @@
 import { Critique, Intervention, Scenario } from "./types";
+import { bestPortfolioGain, targetFromGain } from "./game";
 import { getLabState, setCritique, setLabState } from "./store";
+import { withReviewerEffects } from "./review";
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(path, {
@@ -14,7 +16,8 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
 export type GenerateProgress =
   | { stage: "searching" }
-  | { stage: "drafting"; sourceCount: number };
+  | { stage: "drafting"; sourceCount: number }
+  | { stage: "calibrating" };
 
 /**
  * Discovers evidence, generates a scenario server-side, and makes it the active scenario.
@@ -35,8 +38,29 @@ export async function generateScenario(
     baselineRate,
     evidence,
   });
-  setLabState(next);
-  return next;
+
+  // Let the reviewer pre-read the scenario so the mission target is one the evidence could support.
+  // The result stays hidden in the UI until the reveal.
+  onProgress?.({ stage: "calibrating" });
+  let review: Critique | null = null;
+  try {
+    review = await post<Critique>("/api/critique", { scenario: next.scenario, interventions: next.interventions });
+  } catch {
+    // Without a review the preliminary target from the server is kept.
+  }
+  const { scenario, interventions } = next;
+  const { baselineRate: baseline, direction, mission } = scenario;
+  const targetRate = review
+    ? targetFromGain(
+        baseline,
+        direction,
+        bestPortfolioGain(baseline, direction, withReviewerEffects(interventions, review), mission.budget.amount),
+        0.75
+      )
+    : mission.targetRate;
+  setLabState({ scenario: { ...scenario, mission: { ...mission, targetRate } }, interventions });
+  if (review) setCritique(review);
+  return getLabState();
 }
 
 /** Returns the cached critique for the active scenario, requesting it from Nemotron Ultra if needed. */

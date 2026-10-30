@@ -11,19 +11,25 @@ interface Props {
   selected: boolean;
   onToggle: (id: string) => void;
   review?: Critique["interventions"][number];
+  /** Illustrative cost label, e.g. "NPR 8 lakh". */
+  costLabel: string;
+  /** Why the row cannot be ticked right now (over budget, reveal in progress). */
+  blockedReason?: string;
 }
 
-export default function InterventionRow({ index, intervention, direction, selected, onToggle, review }: Props) {
+export default function InterventionRow({ index, intervention, direction, selected, onToggle, review, costLabel, blockedReason }: Props) {
   const { effect, assumptions, citations } = intervention;
   const concern = review?.concerns?.[0];
+  const blocked = !selected && !!blockedReason;
 
   return (
     <li className={`border-t border-rule border-l-4 ${selected ? "border-l-ink bg-white/50" : "border-l-transparent"}`}>
       <button
         role="checkbox"
         aria-checked={selected}
+        disabled={blocked}
         onClick={() => onToggle(intervention.id)}
-        className="grid w-full grid-cols-[1.75rem_1fr] gap-x-3 px-3 pt-4 pb-2 text-left"
+        className={`grid w-full grid-cols-[1.75rem_1fr] gap-x-3 px-3 pt-4 pb-2 text-left ${blocked ? "opacity-45" : ""}`}
       >
         <span
           aria-hidden="true"
@@ -41,17 +47,23 @@ export default function InterventionRow({ index, intervention, direction, select
             </span>
             <EvidenceScale type={intervention.evidenceType} strength={intervention.evidenceStrength} />
           </span>
+          <span className="mt-0.5 block font-mono text-xs tabular-nums">
+            Cost {costLabel}
+            {blocked && <span className="ml-2 text-pen">· {blockedReason}</span>}
+          </span>
           <span className="mt-1 block text-[0.95rem] text-ink/80">{intervention.description}</span>
-          <span className="mt-2 block font-mono text-xs tabular-nums text-proposal">
-            Proposed {formatEffect(effect, direction)}
+          <span className="mt-2 block">
+            <span className={`font-mono text-xs tabular-nums ${review ? "redpen" : "text-proposal"}`}>
+              Proposed {formatEffect(effect, direction)}
+            </span>
           </span>
           {review?.suggestedEffect && (
-            <span className="block font-mono text-xs tabular-nums font-medium text-pen">
+            <span className="fade-in block font-mono text-xs tabular-nums font-medium text-pen" style={{ animationDelay: "350ms" }}>
               Reviewer {formatEffect(review.suggestedEffect, direction)}
             </span>
           )}
           {concern && (
-            <span className="mt-1.5 block text-sm text-pen">
+            <span className="fade-in mt-1.5 block text-sm text-pen" style={{ animationDelay: "500ms" }}>
               <span aria-hidden="true">⚠ </span>
               <span className="sr-only">Reviewer concern: </span>
               {concern}

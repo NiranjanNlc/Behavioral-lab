@@ -93,9 +93,21 @@ describe("generate_scenario tool", () => {
     };
     (global.fetch as jest.Mock)
       .mockResolvedValueOnce({ ok: true, json: async () => ({ evidence: [{ title: "t", url: "https://x.org", content: "c" }] }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => generated });
+      .mockResolvedValueOnce({ ok: true, json: async () => generated })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          overallAssessment: "x",
+          interventions: [{ id: "deadline-reminder", evidenceVerdict: "weak", comparability: "c", effectRealism: "r", concerns: [], suggestedEffect: { low: 0, medium: 1, high: 2 } }],
+          recommendedCombinations: [],
+          caveats: [],
+        }),
+      });
     const out = await generateScenarioTool.execute({ goal: "VAT filing" });
-    expect((global.fetch as jest.Mock).mock.calls.map((c) => c[0])).toEqual(["/api/evidence", "/api/scenario"]);
+    expect((global.fetch as jest.Mock).mock.calls.map((c) => c[0])).toEqual(["/api/evidence", "/api/scenario", "/api/critique"]);
+    // The reviewer pre-read is cached and the mission target is recalibrated to it (never at the baseline).
+    expect(getLabState().critique).not.toBeNull();
+    expect(getLabState().scenario.mission.targetRate).not.toBe(getLabState().scenario.baselineRate);
     expect(out.isError).toBeUndefined();
     expect(getLabState().scenario.goal).toBe("VAT filing");
   });

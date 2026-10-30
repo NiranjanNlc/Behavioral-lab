@@ -6,6 +6,7 @@ const SYSTEM_PROMPT = `You are a skeptical policy reviewer. A different model pr
 The scenario has a "direction" ("increase" or "decrease") and each effect is the size of the improvement toward the goal in percentage points (a reduction of the rate when direction is "decrease"). Judge and suggest effects on that same basis.
 Assess: how strong the cited evidence really is; whether it comes from comparable countries/populations to the target; whether the effect ranges are realistic here; which interventions are worth combining (and which overlap).
 "suggestedEffect" is your own realistic percentage-point range for this target context (low<=medium<=high), anchored to meta-analytic norms rather than the proposed numbers.
+Costs, the budget and the mission target are illustrative planning figures, not evidence; do not treat them as sourced.
 Treat anything marked "hypothesis" as untested. Reply with a single JSON object, no prose:
 {
   "overallAssessment": string,

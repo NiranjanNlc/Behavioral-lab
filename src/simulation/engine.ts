@@ -46,7 +46,7 @@ function percentile(sorted: number[], p: number): number {
 function monteCarlo(
   baselineRate: number,
   ranges: EffectRange[],
-  { trials = DEFAULT_TRIALS, seed = DEFAULT_SEED, direction = "increase" }: SimulationOptions
+  { trials = DEFAULT_TRIALS, seed = DEFAULT_SEED, direction = "increase", keepSamples = false }: SimulationOptions
 ): Omit<SimulationResult, "intervention"> {
   const rng = createRng(seed);
   const sign = direction === "decrease" ? -1 : 1;
@@ -80,6 +80,7 @@ function monteCarlo(
     expectedChange: round(mean - baselineRate),
     relativeChange: baselineRate === 0 ? 0 : round((mean - baselineRate) / baselineRate, 3),
     probabilityOfImprovement: round(improved / trials, 3),
+    ...(keepSamples ? { samples: rates } : {}),
   };
 }
 

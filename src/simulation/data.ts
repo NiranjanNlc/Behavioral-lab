@@ -9,6 +9,7 @@ export const defaultScenario: Scenario = {
   direction: "increase",
   target: "Urban households",
   baselineRate: 42,
+  mission: { targetRate: 52, horizonMonths: 12, budget: { amount: 40, currency: "USD", unit: "thousand" } },
   baselineBasis: "assumed",
   context: "Illustrative demo scenario. Generate a scenario to ground it in web evidence.",
   source: "default",
@@ -29,6 +30,7 @@ export const defaultInterventions: Intervention[] = [
     description: "Making recycling the default option for households.",
     mechanism:
       "Making recycling the default reduces friction and makes the desired behavior easier to choose.",
+    cost: 12,
     effect: { low: 3, medium: 7, high: 11 },
     ...hypothesis,
   },
@@ -38,6 +40,7 @@ export const defaultInterventions: Intervention[] = [
     description: "Sending timely reminders about recycling schedules.",
     mechanism:
       "A timely reminder increases the likelihood that people remember to perform the desired behavior.",
+    cost: 4,
     effect: { low: 1, medium: 4, high: 7 },
     ...hypothesis,
   },
@@ -47,6 +50,7 @@ export const defaultInterventions: Intervention[] = [
     description: "Showing neighborhood recycling participation rates.",
     mechanism:
       "Showing that many peers participate can increase perceived social norms around the behavior.",
+    cost: 6,
     effect: { low: 2, medium: 9, high: 14 },
     ...hypothesis,
   },
@@ -56,6 +60,7 @@ export const defaultInterventions: Intervention[] = [
     description: "Providing a financial reward for recycling participation.",
     mechanism:
       "A financial reward increases the immediate perceived benefit of participating.",
+    cost: 30,
     effect: { low: 4, medium: 15, high: 22 },
     ...hypothesis,
   },
@@ -65,6 +70,7 @@ export const defaultInterventions: Intervention[] = [
     description: "Framing non-recycling as a loss rather than recycling as a gain.",
     mechanism:
       "Framing non-participation as a potential loss can increase motivation through loss sensitivity.",
+    cost: 8,
     effect: { low: 0, medium: 12, high: 20 },
     ...hypothesis,
   },

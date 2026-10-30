@@ -22,6 +22,9 @@ describe("formatting", () => {
     expect(formatEffect({ low: 1, medium: 3, high: 5 }, "decrease")).toBe("−1 to −5pp, likely −3");
     expect(formatEffect({ low: 0, medium: 0.5, high: 1.5 }, "decrease")).toBe("0 to −1.5pp, likely −0.5");
     expect(formatEffect({ low: 2, medium: 4, high: 8 }, "increase")).toBe("+2 to +8pp, likely +4");
+    // A negative effect is a backfire: the rate moves the wrong way for the goal.
+    expect(formatEffect({ low: -1, medium: 0, high: 1.5 }, "increase")).toBe("−1 to +1.5pp, likely 0");
+    expect(formatEffect({ low: -1, medium: 0, high: 1.5 }, "decrease")).toBe("+1 to −1.5pp, likely 0");
   });
 
   it("cleans page titles", () => {

@@ -48,3 +48,71 @@ h3 {
 summary {
   cursor: pointer;
 }
+
+/* Red-pen strike: draws a line through the proposed range once the reviewer has seen it. */
+.redpen {
+  position: relative;
+  color: var(--muted);
+}
+.redpen::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 55%;
+  height: 2px;
+  width: 0;
+  background: var(--pen);
+  animation: strike 450ms ease-out forwards;
+}
+@keyframes strike {
+  to {
+    width: 100%;
+  }
+}
+
+.fade-in {
+  animation: fade-in 500ms ease-out both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+/* Plinko-style histogram: each dot falls into its bin. */
+.dot {
+  position: absolute;
+  border-radius: 9999px;
+  animation: drop 700ms cubic-bezier(0.3, 0.8, 0.4, 1) both;
+}
+@keyframes drop {
+  from {
+    transform: translateY(var(--fall, -160px));
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+}
+
+.meter-fill {
+  transition:
+    left 1000ms cubic-bezier(0.3, 0.7, 0.3, 1),
+    width 1000ms cubic-bezier(0.3, 0.7, 0.3, 1),
+    background-color 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .redpen::after {
+    animation: none;
+    width: 100%;
+  }
+  .fade-in,
+  .dot {
+    animation: none;
+  }
+  .meter-fill {
+    transition: none;
+  }
+}

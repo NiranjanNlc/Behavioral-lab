@@ -20,10 +20,14 @@ export function formatProbability(p: number): string {
 
 /** "−1 to −5pp, likely −3": the sign follows the goal direction, zero is unsigned. */
 export function formatEffect({ low, medium, high }: EffectRange, direction: Direction): string {
-  const sign = direction === "decrease" ? "−" : "+";
+  // An effect is an improvement toward the goal, so a negative one is a move the wrong way:
+  // the rate falls for an "increase" goal (−) and rises for a "decrease" goal (+).
+  const up = direction === "decrease" ? -1 : 1;
   const v = (n: number) => {
     const r = Number(n.toFixed(1));
-    return r === 0 ? "0" : `${sign}${r}`;
+    if (r === 0) return "0";
+    const change = up * r;
+    return `${change > 0 ? "+" : "−"}${Math.abs(change)}`;
   };
   return `${v(low)} to ${v(high)}pp, likely ${v(medium)}`;
 }

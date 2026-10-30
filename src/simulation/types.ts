@@ -16,11 +16,28 @@ export interface Citation {
   url: string;
 }
 
+export interface Budget {
+  amount: number;
+  /** ISO-style currency code, e.g. "NPR". */
+  currency: string;
+  /** Natural unit such as "lakh" or "thousand"; may be empty. */
+  unit: string;
+}
+
+/** The game objective: a target rate within a time horizon and a budget. Illustrative planning figures. */
+export interface Mission {
+  targetRate: number; // percentage
+  horizonMonths: number;
+  budget: Budget;
+}
+
 export interface Intervention {
   id: string;
   name: string;
   description: string;
   mechanism: string;
+  /** Illustrative cost in the mission budget's currency and unit. */
+  cost: number;
   effect: EffectRange;
   /** "empirical" = estimate drawn from cited research; "hypothesis" = untested idea. */
   evidenceType: EvidenceType;
@@ -37,6 +54,7 @@ export interface Scenario {
   direction: Direction;
   target: string;
   baselineRate: number; // percentage
+  mission: Mission;
   /** "user" = supplied by the caller, "evidence" = taken from a cited source, "assumed" = model estimate. */
   baselineBasis: "user" | "evidence" | "assumed";
   context: string;
@@ -62,6 +80,8 @@ export interface SimulationResult {
   relativeChange: number; // fraction of baseline, e.g. 0.357
   /** Fraction of draws in which the rate moved toward the goal. */
   probabilityOfImprovement: number;
+  /** Sorted simulated rates; only present when requested with keepSamples. */
+  samples?: number[];
 }
 
 export interface CombinedSimulationResult extends Omit<SimulationResult, "intervention"> {
@@ -73,6 +93,8 @@ export interface SimulationOptions {
   seed?: number;
   /** Defaults to "increase". */
   direction?: Direction;
+  /** Keep the sorted simulated rates on the result (used for the histogram). */
+  keepSamples?: boolean;
 }
 
 export interface Critique {

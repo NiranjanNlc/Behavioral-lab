@@ -49,7 +49,7 @@ const clampTrials = (n?: number) =>
 export const getScenarioTool = {
   name: "get_scenario",
   description:
-    "Returns the active policy scenario: goal, direction (increase or decrease), target population, baseline rate (%), context, and the web sources used to build it. The scenario is 'default' (illustrative demo) until generate_scenario is called.",
+    "Returns the active policy scenario: goal, direction (increase or decrease), target population, mission (target rate, horizon, illustrative budget), baseline rate (%), context, and the web sources used to build it. The scenario is 'default' (illustrative demo) until generate_scenario is called.",
   inputSchema: { type: "object", properties: {} } as const,
   execute: async () => text(getLabState().scenario),
 };
@@ -95,15 +95,16 @@ export const generateScenarioTool = {
 export const listInterventionsTool = {
   name: "list_interventions",
   description:
-    "Returns the five interventions in the active scenario with id, name, low/medium/high effect (percentage points of improvement toward the goal), evidence type (empirical vs hypothesis), evidence strength, and citations.",
+    "Returns the five interventions in the active scenario with id, name, illustrative cost, low/medium/high effect (percentage points of improvement toward the goal), evidence type (empirical vs hypothesis), evidence strength, and citations.",
   inputSchema: { type: "object", properties: {} } as const,
   execute: async () =>
     text(
       getLabState().interventions.map(
-        ({ id, name, description, effect, evidenceType, evidenceStrength, assumptions, citations }) => ({
+        ({ id, name, description, cost, effect, evidenceType, evidenceStrength, assumptions, citations }) => ({
           id,
           name,
           description,
+          cost,
           effect,
           evidenceType,
           evidenceStrength,
